@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 interface Producto {
   id: string;
@@ -8,25 +8,27 @@ interface Producto {
   descripcion: string;
   precio_unitario: string;
   categoria_nombre: string;
+  unidad_minima: number;
+  stock_disponible: number;
 }
 
 export function Catalog() {
-  const { token, logout } = useAuth();
-  const navigate = useNavigate();
+  const { token } = useAuth();
+  const { addToCart, items } = useCart();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/productos/', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/productos/`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         if (response.ok) {
           const data = await response.json();
-          setProductos(data);
+          setProductos(data.results || data);
         }
       } catch (error) {
         console.error("Error fetching products", error);
@@ -37,27 +39,64 @@ export function Catalog() {
     fetchProductos();
   }, [token]);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleAddProduct = (prod: Producto) => {
+    addToCart({
+      id: prod.id,
+      nombre: prod.nombre,
+      precio: parseFloat(prod.precio_unitario),
+      cantidad: 1, // El CartContext se encarga de usar unidad_minima si es el primero
+      unidad_minima: prod.unidad_minima || 1,
+      stock_disponible: prod.stock_disponible || 99
+    });
   };
 
-  const salados = productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Salados'));
-  const dulces = productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Dulces'));
+  const getProductQuantity = (productId: string) => {
+    const item = items.find(i => i.id === productId);
+    return item ? item.cantidad : 0;
+  };
+
+  const renderProduct = (prod: Producto, theme: 'salado' | 'dulce') => {
+    const qty = getProductQuantity(prod.id);
+    
+    // Evitar interpolación dinámica de Tailwind para que los estilos compilen correctamente
+    const hoverBg = theme === 'salado' ? 'hover:bg-[#8A865D]/10' : 'hover:bg-[#C89F53]/10';
+    const borderHover = theme === 'salado' ? 'hover:border-transparent' : 'hover:border-transparent';
+    const btnText = theme === 'salado' ? 'text-[#8A865D]' : 'text-[#C89F53]';
+    const btnHoverBg = theme === 'salado' ? 'hover:bg-[#8A865D]/20' : 'hover:bg-[#C89F53]/20';
+
+    return (
+      <div 
+        key={prod.id} 
+        className={`flex justify-between items-center border-b border-outline-variant/30 p-3 -mx-3 rounded-xl group transition-all duration-300 cursor-pointer ${hoverBg} ${borderHover}`} 
+        onClick={() => handleAddProduct(prod)}
+      >
+        <div className="flex flex-col">
+          <span className="text-lg font-medium group-hover:translate-x-1 transition-transform duration-300">{prod.nombre}</span>
+          <span className="text-sm text-on-surface-variant font-semibold mt-0.5">L {parseFloat(prod.precio_unitario).toFixed(2)} c/u</span>
+        </div>
+        <div className="flex items-center gap-3">
+          {qty > 0 && (
+            <span className="text-xs font-bold bg-surface-variant px-2 py-1 rounded-md text-on-surface-variant shadow-sm">
+              {qty} en carrito
+            </span>
+          )}
+          <button 
+            className={`${btnText} font-bold text-xl w-8 h-8 rounded-full flex items-center justify-center transition-colors opacity-50 group-hover:opacity-100 group-hover:scale-110 ${btnHoverBg}`}
+            aria-label="Agregar al carrito"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddProduct(prod);
+            }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-surface font-sans text-on-surface">
-      {/* Navigation Bar */}
-      <nav className="flex justify-between items-center p-6 md:px-12 border-b border-outline-variant/30">
-        <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="h-12 object-contain mix-blend-multiply" />
-        <button 
-          onClick={handleLogout}
-          className="text-sm font-semibold uppercase tracking-wider text-tertiary hover:text-primary transition-colors"
-        >
-          Cerrar Sesión
-        </button>
-      </nav>
-
+    <div className="min-h-screen font-sans">
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-6 py-12">
         <div className="text-center mb-16">
@@ -81,14 +120,9 @@ export function Catalog() {
                 SALADOS <span className="text-outline-variant font-light px-2">/</span> SAVORY
               </h2>
               <div className="space-y-6">
-                {salados.map(prod => (
-                  <div key={prod.id} className="flex justify-between items-end border-b border-outline-variant/40 pb-2 group hover:border-tertiary transition-colors">
-                    <span className="text-lg font-medium">{prod.nombre}</span>
-                    <span className="text-primary-container font-semibold ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      +
-                    </span>
-                  </div>
-                ))}
+                {productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Salados')).map(prod => 
+                  renderProduct(prod, 'salado')
+                )}
               </div>
             </div>
 
@@ -97,15 +131,39 @@ export function Catalog() {
               <h2 className="text-3xl font-headline-lg font-bold text-center mb-8 text-primary-container">
                 DULCES <span className="text-outline-variant font-light px-2">/</span> SWEET
               </h2>
-              <div className="space-y-6">
-                {dulces.map(prod => (
-                  <div key={prod.id} className="flex justify-between items-end border-b border-outline-variant/40 pb-2 group hover:border-primary-container transition-colors">
-                    <span className="text-lg font-medium">{prod.nombre}</span>
-                    <span className="text-tertiary font-semibold ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      +
-                    </span>
+              <div className="space-y-4">
+                {productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Dulces')).map(prod => 
+                  renderProduct(prod, 'dulce')
+                )}
+              </div>
+            </div>
+
+            {/* Bebidas Naturales Column */}
+            <div className="relative md:col-span-2 mt-8 md:mt-12">
+              <h2 className="text-3xl font-headline-lg font-bold text-center mb-12 text-on-surface">
+                BEBIDAS NATURALES <span className="text-outline-variant font-light px-2">/</span> DRINKS
+              </h2>
+              
+              <div className="grid md:grid-cols-2 gap-16 md:gap-24">
+                {/* Con Azúcar */}
+                <div>
+                  <h3 className="text-xl font-bold mb-6 text-tertiary uppercase tracking-widest text-center">Con Azúcar</h3>
+                  <div className="space-y-4">
+                    {productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Bebidas') && p.categoria_nombre.includes('Con')).map(prod => 
+                      renderProduct(prod, 'salado')
+                    )}
                   </div>
-                ))}
+                </div>
+
+                {/* Sin Azúcar */}
+                <div>
+                  <h3 className="text-xl font-bold mb-6 text-primary-container uppercase tracking-widest text-center">Sin Azúcar</h3>
+                  <div className="space-y-4">
+                    {productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Bebidas') && p.categoria_nombre.includes('Sin')).map(prod => 
+                      renderProduct(prod, 'dulce')
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 

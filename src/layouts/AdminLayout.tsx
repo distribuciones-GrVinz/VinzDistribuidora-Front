@@ -17,7 +17,7 @@ export function AdminLayout() {
       ></div>
 
       {/* Contenido dinámico */}
-      <main className="relative z-10 min-h-screen pb-32 pt-8 px-4 md:px-12">
+      <main className="relative z-10 min-h-screen pb-32 pt-8 px-4 md:pr-12 md:pl-32">
         <Outlet />
       </main>
 
