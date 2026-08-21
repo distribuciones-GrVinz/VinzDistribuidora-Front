@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+@theme {
+  /* Marrón Oscuro de Textos y Logos */
+  --color-primary: #3B2211;
+  /* Dorado de VINZ */
+  --color-primary-container: #C89F53;
+  --color-on-primary-fixed: #ffffff;
+  --color-inverse-primary: #e2bd74;
+  
+  /* Verde Oliva del menú */
+  --color-tertiary: #8A865D;
+  --color-tertiary-container: #aba77e;
+  
+  /* Crema Cálido de Fondo */
+  --color-surface: #FDFBF7;
+  --color-background: #FDFBF7;
+  --color-on-surface: #3B2211;
+  --color-on-surface-variant: #6b4d36;
+  
+  --color-outline-variant: #e0d9c8;
+  
+  /* Tipografía unificada (Logo Style) */
+  --font-sans: 'Playfair Display', serif;
+  --font-body-md: 'Playfair Display', serif;
+  --font-headline-xl: 'Playfair Display', serif;
+  --font-headline-lg: 'Playfair Display', serif;
+}
