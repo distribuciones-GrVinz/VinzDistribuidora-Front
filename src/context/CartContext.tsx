@@ -49,8 +49,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prevItems, { ...newItem, cantidad: newItem.unidad_minima }];
     });
-    // Abrir el carrito automáticamente al agregar algo
-    setIsCartOpen(true);
+    // Ya no abrimos el carrito automáticamente
   };
 
   const removeFromCart = (id: string) => {

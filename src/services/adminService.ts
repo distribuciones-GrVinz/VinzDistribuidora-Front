@@ -1,7 +1,7 @@
 // services/adminService.ts
 
 // Usaremos un wrapper simple de fetch que inyecte el token
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:8000/api`;
 
 function getAuthHeaders() {
   const token = localStorage.getItem('vinz_token');
@@ -67,23 +67,43 @@ export async function getProductos() {
   return data.results || data;
 }
 
-export async function createProducto(data: any) {
+export async function createProducto(data: FormData | any) {
+  const isFormData = data instanceof FormData;
+  const headers = getAuthHeaders();
+  if (isFormData) {
+    // @ts-ignore
+    delete headers['Content-Type']; // El navegador lo asigna con el boundary correcto
+  }
+  
   const response = await fetch(`${API_URL}/productos/`, {
     method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(data),
+    headers: headers,
+    body: isFormData ? data : JSON.stringify(data),
   });
-  if (!response.ok) throw new Error('Error al crear producto');
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(errText);
+  }
   return response.json();
 }
 
-export async function updateProducto(id: string, data: any) {
+export async function updateProducto(id: string, data: FormData | any) {
+  const isFormData = data instanceof FormData;
+  const headers = getAuthHeaders();
+  if (isFormData) {
+    // @ts-ignore
+    delete headers['Content-Type'];
+  }
+  
   const response = await fetch(`${API_URL}/productos/${id}/`, {
     method: 'PATCH',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(data),
+    headers: headers,
+    body: isFormData ? data : JSON.stringify(data),
   });
-  if (!response.ok) throw new Error('Error al actualizar producto');
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(errText);
+  }
   return response.json();
 }
 
@@ -114,7 +134,10 @@ export async function updateEstadoPedido(id: string, estado: string) {
     headers: getAuthHeaders(),
     body: JSON.stringify({ estado }),
   });
-  if (!response.ok) throw new Error('Error al actualizar estado del pedido');
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error('Error al actualizar estado del pedido: ' + text);
+  }
   return response.json();
 }
 

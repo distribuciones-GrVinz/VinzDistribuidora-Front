@@ -12,6 +12,7 @@ import { Onboarding } from './pages/Onboarding';
 import { ClientLayout } from './layouts/ClientLayout';
 import { Catalog } from './pages/Catalog';
 import { OrderHistory } from './pages/client/OrderHistory';
+import { ClientSettings } from './pages/client/ClientSettings';
 
 import { AdminLayout } from './layouts/AdminLayout';
 import { AdminDashboard } from './pages/AdminDashboard';
@@ -49,6 +50,7 @@ function App() {
               }>
                 <Route path="/catalogo" element={<Catalog />} />
                 <Route path="/mis-pedidos" element={<OrderHistory />} />
+                <Route path="/configuracion" element={<ClientSettings />} />
               </Route>
               
               {/* Rutas del Portal Admin (Layout + Submódulos) */}

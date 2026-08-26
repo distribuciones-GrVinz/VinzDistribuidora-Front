@@ -1,7 +1,26 @@
 import { Link } from 'react-router-dom';
-import { PackageSearch, ReceiptText, Users, TrendingUp } from 'lucide-react';
+import { PackageSearch, ReceiptText, Users, TrendingUp, ChefHat } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { getPedidos } from '../services/adminService';
+import { ProductionSummaryModal } from '../components/admin/ProductionSummaryModal';
 
 export function AdminDashboard() {
+  const [pedidos, setPedidos] = useState<any[]>([]);
+  const [isProdModalOpen, setIsProdModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchPedidos = async () => {
+      try {
+        const data = await getPedidos();
+        setPedidos(data);
+      } catch (error) {
+        console.error("Error fetching pedidos", error);
+      }
+    };
+    fetchPedidos();
+  }, []);
+
+  const pendingCount = pedidos.filter(p => p.estado === 'Pendiente' || p.estado === 'Nuevo').length;
   const modules = [
     { name: 'Productos', path: '/admin/productos', icon: PackageSearch, count: '12', color: 'bg-white dark:bg-[#111]', hover: 'hover:bg-gray-50 dark:hover:bg-[#1a1a1a]', text: 'text-on-surface dark:text-white', subtext: 'text-on-surface-variant dark:text-white/40' },
     { name: 'Pedidos', path: '/admin/pedidos', icon: ReceiptText, count: '5', color: 'bg-white dark:bg-[#111]', hover: 'hover:bg-gray-50 dark:hover:bg-[#1a1a1a]', text: 'text-on-surface dark:text-white', subtext: 'text-on-surface-variant dark:text-white/40' },
@@ -36,13 +55,25 @@ export function AdminDashboard() {
         </div>
 
         {/* Tarjeta Dorada */}
-        <div className="bg-primary-container p-8 md:p-12 rounded-3xl relative overflow-hidden text-black group shadow-xl hover:shadow-2xl hover:-translate-y-1 border-2 border-white/20 dark:shadow-[0_0_40px_rgba(227,181,74,0.15)] dark:border-[#e3b54a]/30 transition-all">
-          <p className="text-black/60 uppercase tracking-widest text-xs font-bold mb-4 relative z-10">Acción Requerida</p>
-          <h3 className="text-5xl md:text-6xl font-headline-xl text-black relative z-10">5</h3>
-          <p className="mt-4 font-semibold text-black/80 relative z-10">Pedidos nuevos pendientes de despacho.</p>
-          <Link to="/admin/pedidos" className="inline-block mt-8 border-b-2 border-black pb-1 font-bold hover:px-2 transition-all relative z-10">
-            Ir a Pedidos &rarr;
-          </Link>
+        <div className="bg-primary-container p-8 md:p-12 rounded-3xl relative overflow-hidden text-black group shadow-xl hover:shadow-2xl hover:-translate-y-1 border-2 border-white/20 dark:shadow-[0_0_40px_rgba(227,181,74,0.15)] dark:border-[#e3b54a]/30 transition-all flex flex-col justify-between">
+          <div>
+            <p className="text-black/60 uppercase tracking-widest text-xs font-bold mb-4 relative z-10">Acción Requerida</p>
+            <h3 className="text-5xl md:text-6xl font-headline-xl text-black relative z-10">{pendingCount}</h3>
+            <p className="mt-4 font-semibold text-black/80 relative z-10">Pedidos nuevos pendientes de despacho.</p>
+          </div>
+          
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 relative z-10">
+            <button 
+              onClick={() => setIsProdModalOpen(true)}
+              className="flex items-center gap-2 bg-black text-white hover:bg-black/80 dark:bg-black dark:text-[#e3b54a] px-5 py-3 rounded-xl font-bold transition-colors w-max"
+            >
+              <ChefHat className="w-5 h-5" />
+              Resumen de Producción
+            </button>
+            <Link to="/admin/pedidos" className="flex items-center border-b-2 border-black pb-1 font-bold hover:px-2 transition-all w-max h-max mt-auto mb-2">
+              Ir a Pedidos &rarr;
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -61,6 +92,12 @@ export function AdminDashboard() {
           ))}
         </div>
       </div>
+      {/* Production Summary Modal */}
+      <ProductionSummaryModal 
+        isOpen={isProdModalOpen} 
+        onClose={() => setIsProdModalOpen(false)} 
+        pedidos={pedidos} 
+      />
     </div>
   );
 }

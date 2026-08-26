@@ -1,4 +1,4 @@
-import { Mail, Phone, MoreVertical, RefreshCw } from 'lucide-react';
+import { Mail, Phone, MoreVertical } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getClientes, createClienteAdmin } from '../../services/adminService';
 

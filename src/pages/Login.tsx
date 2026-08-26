@@ -14,6 +14,11 @@ export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
+  // Registration state
+  const [registerName, setRegisterName] = useState('');
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+  
   const lastClicks = useRef<number[]>([]);
   const [isAdminMode, setIsAdminMode] = useState(false);
 
@@ -36,7 +41,8 @@ export function Login() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/google-login/`, {
+      const apiHost = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:8000/api`;
+      const response = await fetch(`${apiHost}/google-login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +87,8 @@ export function Login() {
     setError(null);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000/api'}/login/`, {
+      const apiHost = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:8000/api`;
+      const response = await fetch(`${apiHost}/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,6 +126,53 @@ export function Login() {
         }
       } else {
         setError(data.detail || 'Credenciales incorrectas');
+      }
+    } catch {
+      setError('Error de conexión al servidor');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!registerName || !registerEmail || !registerPassword) {
+      setError('Por favor, llena todos los campos para registrarte.');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Use dynamic host for local network access
+      const apiHost = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:8000/api`;
+      const response = await fetch(`${apiHost}/registro/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: registerEmail, 
+          password: registerPassword,
+          nombre: registerName
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Switch back to login panel and pre-fill email
+        setEmail(registerEmail);
+        setPassword(registerPassword);
+        setIsRightPanelActive(false);
+        // Clear registration fields
+        setRegisterName('');
+        setRegisterEmail('');
+        setRegisterPassword('');
+        // Optional: you could auto-login here by calling handleLogin logic
+      } else {
+        setError(data.detail || 'Error al registrar la cuenta');
       }
     } catch {
       setError('Error de conexión al servidor');
@@ -258,19 +312,31 @@ export function Login() {
                     <p className="text-xs text-primary uppercase tracking-wider mb-1 font-bold">Únete a la familia</p>
                     <h2 className="text-2xl md:text-3xl font-bold text-on-surface mb-1 font-headline-xl">Crear una cuenta</h2>
                   </div>
-                <form className="space-y-3 flex-grow flex flex-col justify-center">
+                <form onSubmit={handleRegister} className="space-y-3 flex-grow flex flex-col justify-center">
                   <div>
                     <label className="block text-xs font-semibold text-on-surface-variant mb-1">Nombre completo</label>
                     <div className="relative">
                       <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 w-4 h-4" />
-                      <input type="text" className="w-full pl-9 pr-4 py-2.5 text-sm bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Juan Pérez" />
+                      <input 
+                        type="text" 
+                        value={registerName}
+                        onChange={(e) => setRegisterName(e.target.value)}
+                        className={`w-full pl-9 pr-4 py-2.5 text-sm bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${error && isRightPanelActive ? 'ring-2 ring-red-500' : ''}`} 
+                        placeholder="Juan Pérez" 
+                      />
                     </div>
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-on-surface-variant mb-1">Correo electrónico</label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 w-4 h-4" />
-                      <input type="email" className="w-full pl-9 pr-4 py-2.5 text-sm bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="tu@empresa.com" />
+                      <input 
+                        type="email" 
+                        value={registerEmail}
+                        onChange={(e) => setRegisterEmail(e.target.value)}
+                        className={`w-full pl-9 pr-4 py-2.5 text-sm bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${error && isRightPanelActive ? 'ring-2 ring-red-500' : ''}`} 
+                        placeholder="tu@empresa.com" 
+                      />
                     </div>
                   </div>
                   <div>
@@ -279,7 +345,9 @@ export function Login() {
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 w-4 h-4" />
                       <input 
                         type={showRegisterPassword ? "text" : "password"} 
-                        className="w-full pl-9 pr-10 py-2.5 text-sm bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" 
+                        value={registerPassword}
+                        onChange={(e) => setRegisterPassword(e.target.value)}
+                        className={`w-full pl-9 pr-10 py-2.5 text-sm bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${error && isRightPanelActive ? 'ring-2 ring-red-500' : ''}`} 
                         placeholder="Crea una contraseña" 
                       />
                       <button type="button" onClick={() => setShowRegisterPassword(!showRegisterPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-primary transition-colors">
@@ -287,8 +355,19 @@ export function Login() {
                       </button>
                     </div>
                   </div>
-                  <button type="button" className="w-full bg-[#e3b54a] text-[#251a00] text-sm font-bold py-2.5 rounded-full hover:bg-[#efc054] transition-all transform hover:scale-[1.02] mt-3">
-                    Regístrate
+                  {error && isRightPanelActive && <p className="text-red-500 text-sm font-medium">{error}</p>}
+
+                  <button 
+                    type="submit" 
+                    disabled={isLoading}
+                    className="w-full bg-[#e3b54a] text-[#251a00] text-sm font-bold py-2.5 rounded-full hover:bg-[#efc054] transition-all transform hover:scale-[1.02] mt-3 flex justify-center items-center"
+                  >
+                    {isLoading ? (
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : 'Regístrate'}
                   </button>
                   
                   <div className="relative flex py-3 items-center">
