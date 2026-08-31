@@ -23,6 +23,15 @@ export async function getClientes() {
   return data.results || data;
 }
 
+export async function updateCliente(id: string, data: any) {
+  const response = await fetch(`${API_URL}/clientes/${id}/`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Error al actualizar cliente');
+  return response.json();
+}
 export async function createCliente(data: any) {
   const response = await fetch(`${API_URL}/clientes/`, {
     method: 'POST',
@@ -149,5 +158,47 @@ export async function crearPedidoCompleto(data: { cliente_id: string, notas: str
     body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error('Error al procesar el pedido transaccional');
+  return response.json();
+}
+
+// ==========================================
+// CONFIGURACIÓN SAR
+// ==========================================
+export async function getSARConfig() {
+  const response = await fetch(`${API_URL}/sar-config/`, {
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) throw new Error('Error al obtener configuración SAR');
+  return response.json();
+}
+
+export async function updateSARConfig(data: any) {
+  const response = await fetch(`${API_URL}/sar-config/`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Error al actualizar configuración SAR');
+  return response.json();
+}
+
+// ==========================================
+// CONFIGURACION DE ENTREGAS
+// ==========================================
+export async function getConfiguracionesEntrega() {
+  const response = await fetch(`${API_URL}/configuraciones-entrega/`, {
+    headers: getAuthHeaders(),
+  });
+  if (!response.ok) throw new Error('Error al obtener configuración de entregas');
+  return response.json();
+}
+
+export async function updateConfiguracionesEntrega(data: any) {
+  const response = await fetch(`${API_URL}/configuraciones-entrega/`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Error al actualizar configuración de entregas');
   return response.json();
 }

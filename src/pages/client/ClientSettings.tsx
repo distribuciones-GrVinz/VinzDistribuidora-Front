@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { User, Building2, Store, FileText, MapPin, Save, Loader2, Phone, Moon, Sun, Monitor } from 'lucide-react';
+import { User, Building2, Store, FileText, MapPin, Save, Loader2, Phone, Moon, Sun, Monitor, LogOut } from 'lucide-react';
 
 interface ClienteProfile {
   id: string;
@@ -18,7 +18,7 @@ interface ClienteProfile {
 }
 
 export function ClientSettings() {
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [profile, setProfile] = useState<ClienteProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -111,7 +111,7 @@ export function ClientSettings() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 mb-20 px-4 md:px-8 transition-colors duration-300">
+    <div className="max-w-4xl mx-auto pt-2 pb-8 md:pt-4 md:pb-8 mb-20 px-4 md:px-8 transition-colors duration-300">
       <div className="mb-12 mt-8">
         <h2 className="text-sm tracking-[0.3em] text-tertiary dark:text-[#e3b54a] font-bold uppercase mb-2">Preferencias y Perfil</h2>
         <h1 className="text-5xl md:text-7xl font-headline-xl text-primary dark:text-white">Configuración.</h1>
@@ -267,6 +267,23 @@ export function ClientSettings() {
             </div>
           </section>
         </form>
+
+        {/* Sección de Cerrar Sesión */}
+        <section className="mt-8 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-3xl p-6 md:p-10 shadow-sm transition-colors">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">Cerrar Sesión</h2>
+              <p className="text-sm text-red-500/80 dark:text-red-400/70">Si cierras sesión tendrás que volver a ingresar tus credenciales para acceder a la plataforma.</p>
+            </div>
+            <button 
+              onClick={logout}
+              className="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full flex items-center justify-center gap-2 transition-transform hover:scale-105 shadow-md"
+            >
+              <LogOut className="w-5 h-5" />
+              Salir de la Cuenta
+            </button>
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -17,6 +17,8 @@ interface Pedido {
   total: string;
   estado: string;
   notas: string;
+  fecha_entrega_esperada_inicio: string | null;
+  fecha_entrega_esperada_fin: string | null;
   detalles: DetallePedido[];
 }
 
@@ -80,7 +82,7 @@ export function OrderHistory() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12 md:py-12 transition-colors duration-300">
+    <div className="max-w-4xl mx-auto px-6 pt-2 pb-12 md:pt-4 md:pb-12 transition-colors duration-300">
       <h1 className="text-4xl md:text-5xl font-headline-xl font-bold mb-12 text-on-surface dark:text-white drop-shadow-sm">Mis Pedidos</h1>
 
       {error ? (
@@ -106,6 +108,14 @@ export function OrderHistory() {
                   <p className="text-on-surface dark:text-white font-medium capitalize">
                     {safeDate(pedido.created_at)}
                   </p>
+                  {pedido.fecha_entrega_esperada_inicio && pedido.fecha_entrega_esperada_fin && (
+                    <div className="mt-2 bg-primary/10 dark:bg-[#e3b54a]/10 px-3 py-1.5 rounded-md inline-block">
+                      <p className="text-xs font-bold text-primary dark:text-[#e3b54a] uppercase tracking-wider mb-0.5">Entrega Esperada:</p>
+                      <p className="text-sm font-medium text-on-surface dark:text-white">
+                        {new Date(pedido.fecha_entrega_esperada_inicio).toLocaleDateString()} a {new Date(pedido.fecha_entrega_esperada_fin).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-4">
                   <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-bold ${getStatusColor(pedido.estado)} dark:opacity-90`}>

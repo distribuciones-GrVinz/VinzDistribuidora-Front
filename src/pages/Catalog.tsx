@@ -12,6 +12,7 @@ interface Producto {
   unidad_minima: number;
   stock_disponible: number;
   imagen_url?: string;
+  estado?: boolean;
 }
 
 export function Catalog() {
@@ -32,7 +33,12 @@ export function Catalog() {
         });
         if (response.ok) {
           const data = await response.json();
-          setProductos(data.results || data);
+          const allProducts = data.results || data;
+          // Filtrar productos inactivos y ordenarlos alfabéticamente
+          const filteredAndSorted = allProducts
+            .filter((p: Producto) => p.estado !== false)
+            .sort((a: Producto, b: Producto) => a.nombre.localeCompare(b.nombre));
+          setProductos(filteredAndSorted);
         }
       } catch (error) {
         console.error("Error fetching products", error);
@@ -61,14 +67,14 @@ export function Catalog() {
     return (
       <div 
         key={prod.id} 
-        className={`flex flex-col bg-white/95 dark:bg-[#1a1a1a]/95 border border-white/40 dark:border-white/10 rounded-2xl overflow-hidden group transition-all duration-500 cursor-pointer ${borderHover} shadow-xl hover:shadow-2xl hover:-translate-y-1`} 
+        className={`flex flex-col mx-auto w-full max-w-[170px] sm:max-w-[220px] md:max-w-[240px] h-full bg-white/95 dark:bg-[#1a1a1a]/95 border border-white/40 dark:border-white/10 rounded-2xl overflow-hidden group transition-all duration-500 cursor-pointer ${borderHover} shadow-xl hover:shadow-2xl hover:-translate-y-1`} 
         onClick={() => setSelectedProduct(prod)}
       >
-        {/* Imagen del producto o placeholder */}
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-outline-variant/30 dark:bg-black/40">
+        {/* Imagen del producto o placeholder con fondo crema/gris */}
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#F2EFE9] dark:bg-[#222222]">
           {prod.imagen_url ? (
             <img 
-              src={prod.imagen_url} 
+              src={prod.imagen_url?.replace(/^https?:\/\/[^\/]+/, '')} 
               alt={prod.nombre} 
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />
@@ -79,8 +85,8 @@ export function Catalog() {
             </div>
           )}
           
-          {/* Overlay oscuro para darle más elegancia */}
-          <div className="absolute inset-0 bg-gradient-to-t from-surface/80 via-surface/20 to-transparent dark:from-black/80 dark:via-black/20 dark:to-transparent"></div>
+          {/* Overlay sutil (se eliminó el gradiente crema que desenfocaba la imagen) */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent dark:from-black/60 dark:to-transparent"></div>
           
           {/* Insignia de carrito en la imagen si ya hay unidades */}
           {qty > 0 && (
@@ -119,6 +125,50 @@ export function Catalog() {
     );
   };
 
+  const renderProductList = (items: Producto[], theme: 'salado' | 'dulce') => {
+    if (items.length % 2 === 0) {
+      return (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8 px-1 sm:px-2 md:px-4">
+          {items.map(prod => renderProduct(prod, theme))}
+        </div>
+      );
+    }
+    
+    if (items.length <= 3) {
+      return (
+        <div className="flex overflow-x-auto gap-3 sm:gap-6 md:gap-8 pb-6 snap-x snap-mandatory scroll-smooth hide-scrollbar px-1 sm:px-2 md:px-4">
+          {items.map(prod => (
+            <div key={prod.id} className="w-[calc(50%-0.375rem)] sm:w-[calc(33.3333%-1rem)] md:w-[calc(25%-1.5rem)] xl:w-[calc(20%-1.6rem)] flex-none snap-start">
+              {renderProduct(prod, theme)}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // Impares mayores a 3 (ej: 5, 7, 9)
+    // Se divide en una cuadrícula para los primeros elementos (pares) y un carrusel para los últimos 3
+    const gridItems = items.slice(0, items.length - 3);
+    const carouselItems = items.slice(items.length - 3);
+
+    return (
+      <div className="flex flex-col gap-3 sm:gap-6 md:gap-8">
+        {gridItems.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8 px-1 sm:px-2 md:px-4">
+            {gridItems.map(prod => renderProduct(prod, theme))}
+          </div>
+        )}
+        <div className="flex overflow-x-auto gap-3 sm:gap-6 md:gap-8 pb-6 snap-x snap-mandatory scroll-smooth hide-scrollbar px-1 sm:px-2 md:px-4">
+          {carouselItems.map(prod => (
+            <div key={prod.id} className="w-[calc(50%-0.375rem)] sm:w-[calc(33.3333%-1rem)] md:w-[calc(25%-1.5rem)] xl:w-[calc(20%-1.6rem)] flex-none snap-start">
+              {renderProduct(prod, theme)}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="font-sans relative transition-colors duration-300 min-h-screen">
 
@@ -130,101 +180,122 @@ export function Catalog() {
       )}
       
       {/* Main Content */}
-      <main className="relative z-10 max-w-7xl mx-auto px-2 sm:px-6 py-12 md:py-20 pb-16">
-        <div className="text-center mb-24">
-          <h1 className="text-5xl md:text-7xl font-headline-xl font-bold mb-4 tracking-tight text-on-surface dark:text-white drop-shadow-sm transition-colors">SWEET & TASTY</h1>
-          <p className="text-xl md:text-2xl text-primary dark:text-[#C89F53] font-serif italic mb-8 border-b border-primary/30 dark:border-[#C89F53]/50 pb-8 inline-block px-16 drop-shadow-sm transition-colors">
+      <main className="relative z-10 max-w-7xl mx-auto px-2 sm:px-6 pt-2 md:pt-4 md:pb-12">
+        <div className="text-center mb-4">
+          <h1 className="text-5xl md:text-7xl font-headline-xl font-bold mb-2 tracking-tight text-on-surface dark:text-white drop-shadow-sm transition-colors">
+            SWEET <span style={{ fontSize: '55%', verticalAlign: 'middle', opacity: 0.65, fontWeight: 400 }}>&amp;</span> TASTY
+          </h1>
+          <p className="block text-xl md:text-2xl text-primary dark:text-[#C89F53] font-serif italic mb-6 drop-shadow-sm transition-colors">
             by VINZ
           </p>
-          <br/>
-          <span className="text-sm tracking-[0.4em] uppercase text-on-surface-variant dark:text-white/80 bg-surface/50 dark:bg-black/40 px-6 py-2 rounded-full border border-outline-variant/50 dark:border-white/20 backdrop-blur-md shadow-sm transition-colors">
+          <div className="w-20 h-px bg-primary/30 dark:bg-[#C89F53]/50 mx-auto mb-4" />
+          <span className="inline-block text-sm tracking-[0.4em] uppercase text-on-surface-variant dark:text-white/80 bg-surface/70 dark:bg-black/50 px-6 py-2 rounded-full border border-outline-variant/50 dark:border-white/20 shadow-sm transition-colors">
             Menú Exclusivo
           </span>
         </div>
 
         {/* Filtros de categoría */}
-        {!loading && (
-          <div className="flex overflow-x-auto hide-scrollbar gap-3 sm:gap-4 justify-start md:justify-center mb-12 px-2 py-2">
-            {['Todos', 'Salados', 'Dulces', 'Bebidas'].map(cat => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`whitespace-nowrap px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-sm border ${
-                  activeCategory === cat 
-                    ? 'bg-gradient-to-r from-[#e3b54a] to-[#c9923c] text-black border-transparent scale-105' 
-                    : 'bg-surface-variant/40 text-on-surface/70 dark:bg-black/40 dark:text-white/70 border-outline-variant/30 dark:border-white/10 hover:border-[#e3b54a]/50 hover:text-on-surface dark:hover:text-white'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        )}
+        {!loading && (() => {
+          const availableCategories = ['Todos'];
+          if (productos.some(p => p.categoria_nombre && p.categoria_nombre.includes('Salados'))) availableCategories.push('Salados');
+          if (productos.some(p => p.categoria_nombre && p.categoria_nombre.includes('Dulces'))) availableCategories.push('Dulces');
+          if (productos.some(p => p.categoria_nombre && p.categoria_nombre.includes('Bebida'))) availableCategories.push('Bebidas');
+
+          return (
+            <div className="flex flex-wrap gap-3 sm:gap-4 justify-center mb-2 px-2 py-2">
+              {availableCategories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`whitespace-nowrap px-6 py-2.5 rounded-full font-bold text-sm transition-all shadow-sm border ${
+                    activeCategory === cat 
+                      ? 'bg-gradient-to-r from-[#e3b54a] to-[#c9923c] text-black border-transparent scale-105' 
+                      : 'bg-surface-variant/40 text-on-surface/70 dark:bg-black/40 dark:text-white/70 border-outline-variant/30 dark:border-white/10 hover:border-[#e3b54a]/50 hover:text-on-surface dark:hover:text-white'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          );
+        })()}
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C89F53]"></div>
           </div>
         ) : (
-          <div className="space-y-24">
+          <div className="space-y-8">
             
             {/* Salados Row */}
-            {(activeCategory === 'Todos' || activeCategory === 'Salados') && (
-              <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h2 className="text-3xl md:text-4xl font-headline-lg font-bold text-center mb-12 text-[#686343] dark:text-[#8A865D] drop-shadow-lg transition-colors">
-                  SALADOS <span className="text-outline-variant/50 dark:text-white/30 font-light px-3">|</span> SAVORY
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8">
-                  {productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Salados')).map(prod => 
-                    renderProduct(prod, 'salado')
-                  )}
+            {(activeCategory === 'Todos' || activeCategory === 'Salados') && (() => {
+              const items = productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Salados'));
+              if (items.length === 0) return null;
+              
+              return (
+                <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-center mb-3">
+                    <h2 className="text-4xl md:text-5xl font-headline-lg font-bold text-center text-primary dark:text-white drop-shadow-2xl transition-colors">
+                      SALADOS <span className="text-tertiary dark:text-[#C89F53] font-light px-3 opacity-90">|</span> <span className="text-tertiary dark:text-[#C89F53]">SAVORY</span>
+                    </h2>
+                  </div>
+                  {renderProductList(items, 'salado')}
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Dulces Row */}
-            {(activeCategory === 'Todos' || activeCategory === 'Dulces') && (
-              <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h2 className="text-3xl md:text-4xl font-headline-lg font-bold text-center mb-12 text-primary dark:text-[#C89F53] drop-shadow-lg transition-colors">
-                  DULCES <span className="text-outline-variant/50 dark:text-white/30 font-light px-3">|</span> SWEET
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8">
-                  {productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Dulces')).map(prod => 
-                    renderProduct(prod, 'dulce')
-                  )}
+            {(activeCategory === 'Todos' || activeCategory === 'Dulces') && (() => {
+              const items = productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Dulces'));
+              if (items.length === 0) return null;
+              
+              return (
+                <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-center mb-3">
+                    <h2 className="text-4xl md:text-5xl font-headline-lg font-bold text-center text-primary dark:text-white drop-shadow-2xl transition-colors">
+                      DULCES <span className="text-tertiary dark:text-[#C89F53] font-light px-3 opacity-90">|</span> <span className="text-tertiary dark:text-[#C89F53]">SWEET</span>
+                    </h2>
+                  </div>
+                  {renderProductList(items, 'dulce')}
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Bebidas Naturales Row */}
-            {(activeCategory === 'Todos' || activeCategory === 'Bebidas') && (
-              <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h2 className="text-3xl md:text-4xl font-headline-lg font-bold text-center mb-16 text-on-surface dark:text-white drop-shadow-lg transition-colors">
-                  BEBIDAS NATURALES <span className="text-outline-variant/50 dark:text-white/30 font-light px-3">|</span> DRINKS
-                </h2>
-                
-                <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
-                  {/* Con Azúcar */}
-                  <div className="bg-surface-variant/40 dark:bg-black/30 p-5 sm:p-8 rounded-3xl border border-outline-variant/20 dark:border-white/5 backdrop-blur-sm transition-colors">
-                    <h3 className="text-xl font-bold mb-8 text-[#686343] dark:text-[#8A865D] uppercase tracking-widest text-center transition-colors">Con Azúcar</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
-                      {productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Bebidas') && p.categoria_nombre.includes('Con')).map(prod => 
-                        renderProduct(prod, 'salado')
-                      )}
-                    </div>
-                  </div>
+            {(activeCategory === 'Todos' || activeCategory === 'Bebidas') && (() => {
+              const bebidas = productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Bebida'));
+              if (bebidas.length === 0) return null;
 
-                  {/* Sin Azúcar */}
-                  <div className="bg-surface-variant/40 dark:bg-black/30 p-5 sm:p-8 rounded-3xl border border-outline-variant/20 dark:border-white/5 backdrop-blur-sm transition-colors">
-                    <h3 className="text-xl font-bold mb-8 text-primary dark:text-[#C89F53] uppercase tracking-widest text-center transition-colors">Sin Azúcar</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
-                      {productos.filter(p => p.categoria_nombre && p.categoria_nombre.includes('Bebidas') && p.categoria_nombre.includes('Sin')).map(prod => 
-                        renderProduct(prod, 'dulce')
-                      )}
-                    </div>
+              const conAzucar = bebidas.filter(p => p.categoria_nombre.includes('Con'));
+              const sinAzucar = bebidas.filter(p => p.categoria_nombre.includes('Sin'));
+
+              return (
+                <div className="relative animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-center mb-1">
+                    <h2 className="text-4xl md:text-5xl font-headline-lg font-bold text-center text-primary dark:text-white drop-shadow-2xl transition-colors">
+                      BEBIDAS <span className="text-tertiary dark:text-[#C89F53] font-light px-3 opacity-90">|</span> <span className="text-tertiary dark:text-[#C89F53]">DRINKS</span>
+                    </h2>
+                  </div>
+                  
+                  <div className="flex flex-col gap-6">
+                    {/* Con Azúcar */}
+                    {conAzucar.length > 0 && (
+                      <div>
+                        <h3 className="text-xl font-bold mb-4 text-[#686343] dark:text-[#8A865D] uppercase tracking-widest text-center drop-shadow-md transition-colors">Con Azúcar</h3>
+                        {renderProductList(conAzucar, 'salado')}
+                      </div>
+                    )}
+
+                    {/* Sin Azúcar */}
+                    {sinAzucar.length > 0 && (
+                      <div>
+                        <h3 className="text-xl font-bold mb-4 text-primary dark:text-[#C89F53] uppercase tracking-widest text-center drop-shadow-md transition-colors">Sin Azúcar</h3>
+                        {renderProductList(sinAzucar, 'dulce')}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
           </div>
         )}

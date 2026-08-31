@@ -8,6 +8,8 @@ export interface CartItem {
   cantidad: number;
   unidad_minima: number;
   stock_disponible: number;
+  exento_isv?: boolean;
+  imagen?: string;
 }
 
 interface CartContextType {
@@ -40,14 +42,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const existingItem = prevItems.find((i) => i.id === newItem.id);
       if (existingItem) {
         // Asegurar que no sobrepase el stock al sumar (opcional en frontend, se valida en backend)
-        const nuevaCant = existingItem.cantidad + newItem.unidad_minima;
+        const nuevaCant = existingItem.cantidad + newItem.cantidad;
         if (nuevaCant > existingItem.stock_disponible) return prevItems;
 
         return prevItems.map((i) =>
           i.id === newItem.id ? { ...i, cantidad: nuevaCant } : i
         );
       }
-      return [...prevItems, { ...newItem, cantidad: newItem.unidad_minima }];
+      return [...prevItems, { ...newItem, cantidad: newItem.cantidad }];
     });
     // Ya no abrimos el carrito automáticamente
   };

@@ -7,5 +7,16 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 4000,
+    allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/vinz-media': {
+        target: 'http://127.0.0.1:9000',
+        changeOrigin: true,
+      }
+    }
   },
 })

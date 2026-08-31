@@ -1,10 +1,13 @@
 import { X, ChefHat, Store, PackageCheck, FileText, CheckSquare, Square } from 'lucide-react';
 import { useMemo, useEffect, useState } from 'react';
+import { updateEstadoPedido } from '../../services/adminService';
+import { useNotification } from '../../context/NotificationContext';
 
 interface ProductionSummaryModalProps {
   isOpen: boolean;
   onClose: () => void;
   pedidos: any[];
+  onOrdersUpdated?: () => void; // Call this when orders change status
 }
 
 interface ClientSummary {
@@ -17,10 +20,32 @@ interface ClientSummary {
   }[];
 }
 
-export function ProductionSummaryModal({ isOpen, onClose, pedidos }: ProductionSummaryModalProps) {
+export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdated }: ProductionSummaryModalProps) {
   const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
+  const { showNotification } = useNotification();
 
-  const toggleItem = (clientName: string, prodName: string) => {
+  // Función para verificar si un cliente completó todos sus items
+  const checkClientCompletion = async (clientName: string, clientProducts: any[], currentSet: Set<string>) => {
+    const allCompleted = clientProducts.every(p => currentSet.has(`${clientName}-${p.producto_nombre}`));
+    if (allCompleted) {
+      // Encontrar los pedidos pendientes de este cliente
+      const pendingOrders = pedidos.filter(p => (p.estado === 'Pendiente' || p.estado === 'Nuevo') && p.cliente_nombre === clientName);
+      if (pendingOrders.length > 0) {
+        try {
+          await Promise.all(pendingOrders.map(p => updateEstadoPedido(p.id, 'Elaborado')));
+          showNotification('success', `Pedidos de ${clientName} marcados como Elaborado.`);
+          if (onOrdersUpdated) {
+            onOrdersUpdated();
+          }
+        } catch (error) {
+          console.error('Error actualizando pedidos a Elaborado:', error);
+          showNotification('error', 'Hubo un error al actualizar el estado de los pedidos.');
+        }
+      }
+    }
+  };
+
+  const toggleItem = (clientName: string, prodName: string, clientProducts: any[]) => {
     const key = `${clientName}-${prodName}`;
     const newSet = new Set(completedItems);
     if (newSet.has(key)) {
@@ -29,6 +54,7 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos }: ProductionS
       newSet.add(key);
     }
     setCompletedItems(newSet);
+    checkClientCompletion(clientName, clientProducts, newSet);
   };
 
   const toggleAllClientItems = (clientName: string, productos: { producto_nombre: string }[]) => {
@@ -40,6 +66,7 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos }: ProductionS
       productos.forEach(p => newSet.add(`${clientName}-${p.producto_nombre}`));
     }
     setCompletedItems(newSet);
+    checkClientCompletion(clientName, productos, newSet);
   };
 
   // Bloquear el scroll del fondo cuando el modal está abierto
@@ -201,46 +228,48 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos }: ProductionS
 
                     {/* Detalle Desplegado Automáticamente */}
                     <div className={`px-5 md:px-6 pb-6 pt-2 overflow-x-auto transition-colors ${allCompleted ? 'bg-emerald-50/30 dark:bg-[#151515]' : 'bg-white dark:bg-[#151515]'}`}>
-                      <table className="w-full text-left text-sm mt-2 min-w-full">
-                        <thead className="text-on-surface-variant/60 dark:text-white/40 border-b border-outline-variant/20 dark:border-white/5">
-                          <tr>
-                            <th className="pb-3 w-10">
-                              <button 
-                                onClick={() => toggleAllClientItems(client.cliente_nombre, client.productos)}
-                                className={`transition-opacity flex items-center justify-center hover:opacity-70 ${allCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-tertiary dark:text-[#e3b54a]'}`}
-                                title={allCompleted ? "Desmarcar todos" : "Marcar todos"}
-                              >
-                                {allCompleted ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
-                              </button>
-                            </th>
-                            <th className="pb-3 font-semibold">Producto</th>
-                            <th className="pb-3 font-semibold text-right">Cantidad</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-outline-variant/10 dark:divide-white/5">
-                          {client.productos.map((prod, pIdx) => {
-                            const isCompleted = completedItems.has(`${client.cliente_nombre}-${prod.producto_nombre}`);
-                            return (
-                              <tr key={pIdx} className={`text-on-surface dark:text-white/90 transition-all duration-300 ${isCompleted ? 'opacity-40' : ''}`}>
-                                <td className="py-4">
-                                  <button 
-                                    onClick={() => toggleItem(client.cliente_nombre, prod.producto_nombre)}
-                                    className={`hover:opacity-70 transition-opacity flex items-center justify-center ${isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-tertiary dark:text-[#e3b54a]'}`}
-                                  >
-                                    {isCompleted ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
-                                  </button>
-                                </td>
-                                <td className={`py-4 pr-4 transition-all duration-300 ${isCompleted ? 'line-through' : ''}`}>{prod.producto_nombre}</td>
-                                <td className="py-4 text-right">
-                                  <span className={`inline-flex items-center justify-center font-bold px-3 py-1 rounded-lg transition-colors duration-300 ${isCompleted ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-tertiary/10 text-tertiary dark:bg-[#e3b54a]/10 dark:text-[#e3b54a]'}`}>
-                                    {prod.cantidad}
-                                  </span>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                      <div className="premium-table-card mt-2">
+                        <table className="premium-table">
+                          <thead>
+                            <tr>
+                              <th className="w-10">
+                                <button 
+                                  onClick={() => toggleAllClientItems(client.cliente_nombre, client.productos)}
+                                  className={`transition-opacity flex items-center justify-center hover:opacity-70 ${allCompleted ? 'text-white dark:text-emerald-400' : 'text-white dark:text-[#e3b54a]'}`}
+                                  title={allCompleted ? "Desmarcar todos" : "Marcar todos"}
+                                >
+                                  {allCompleted ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+                                </button>
+                              </th>
+                              <th>Producto</th>
+                              <th className="text-right">Cantidad</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {client.productos.map((prod, pIdx) => {
+                              const isCompleted = completedItems.has(`${client.cliente_nombre}-${prod.producto_nombre}`);
+                              return (
+                                <tr key={pIdx} className={`${isCompleted ? 'opacity-40 bg-emerald-50/50 dark:bg-emerald-900/10 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/20' : ''}`}>
+                                  <td>
+                                    <button 
+                                      onClick={() => toggleItem(client.cliente_nombre, prod.producto_nombre, client.productos)}
+                                      className={`hover:opacity-70 transition-opacity flex items-center justify-center ${isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-tertiary dark:text-[#e3b54a]'}`}
+                                    >
+                                      {isCompleted ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+                                    </button>
+                                  </td>
+                                  <td className={`${isCompleted ? 'line-through' : ''}`}>{prod.producto_nombre}</td>
+                                  <td className="text-right">
+                                    <span className={`inline-flex items-center justify-center font-bold px-3 py-1 rounded-lg transition-colors duration-300 ${isCompleted ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-tertiary/10 text-tertiary dark:bg-[#e3b54a]/10 dark:text-[#e3b54a]'}`}>
+                                      {prod.cantidad}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
                       
                       {/* Mostrar Notas si existen */}
                       {client.notas.length > 0 && (

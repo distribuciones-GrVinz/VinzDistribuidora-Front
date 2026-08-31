@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useAuth } from './AuthContext';
 
 type Theme = 'light' | 'dark';
 
@@ -11,11 +12,20 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('theme');
-    if (saved === 'light' || saved === 'dark') return saved;
-    return 'light'; // Light por defecto para el panel administrativo
-  });
+  const { user } = useAuth();
+  const themeKey = user ? `theme_${user.email}` : 'theme';
+
+  const [theme, setTheme] = useState<Theme>('light');
+
+  // Load theme when user changes
+  useEffect(() => {
+    const saved = localStorage.getItem(themeKey);
+    if (saved === 'light' || saved === 'dark') {
+      setTheme(saved);
+    } else {
+      setTheme('light'); // Light por defecto
+    }
+  }, [themeKey]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -24,8 +34,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       root.classList.remove('dark');
     }
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+    localStorage.setItem(themeKey, theme);
+  }, [theme, themeKey]);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');

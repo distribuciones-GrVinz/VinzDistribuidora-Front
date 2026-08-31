@@ -48,5 +48,22 @@ export const clientService = {
 
     const data = await response.json();
     return data.results || data;
+  },
+
+  /**
+   * Obtiene la configuración de despachos (fechas estimadas)
+   */
+  async getConfiguracionDespacho(token: string) {
+    const response = await fetch(`${API_URL}/configuraciones-entrega/`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Error al obtener configuración de entrega');
+    }
+
+    return await response.json();
   }
 };

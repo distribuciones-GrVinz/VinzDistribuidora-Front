@@ -1,4 +1,4 @@
-import { Package, Clock, CheckCircle, ChefHat, Receipt, Printer } from 'lucide-react';
+import { Package, Clock, CheckCircle, ChefHat, Receipt } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { getPedidos, updateEstadoPedido } from '../../services/adminService';
 import { ProductionSummaryModal } from '../../components/admin/ProductionSummaryModal';
@@ -43,7 +43,7 @@ export function OrderManager() {
   const filteredPedidos = useMemo(() => {
     return pedidos.filter(pedido => {
       if (filterTab === 'Pendientes') {
-        return ['Pendiente', 'Nuevo', 'Confirmado'].includes(pedido.estado);
+        return ['Pendiente', 'Nuevo', 'Elaborado'].includes(pedido.estado);
       }
       if (filterTab === 'Transito') {
         return ['En Tránsito', 'En Ruta'].includes(pedido.estado);
@@ -72,7 +72,7 @@ export function OrderManager() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-8 mb-20 transition-colors duration-300">
+    <div className="max-w-5xl mx-auto pt-2 pb-8 md:pt-4 md:pb-8 mb-20 transition-colors duration-300">
       {/* Header */}
       <div className="mb-16 mt-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
@@ -130,12 +130,20 @@ export function OrderManager() {
                   <div>
                     <p className="text-[10px] uppercase tracking-widest text-on-surface-variant/70 dark:text-white/40 font-bold mb-1">Tienda / Razón Social</p>
                     <h3 className="text-xl font-headline-lg text-on-surface dark:text-white group-hover:text-tertiary dark:group-hover:text-[#e3b54a] transition-colors">{pedido.cliente_nombre}</h3>
-                    <div className="flex items-center gap-3 text-sm mt-1">
-                      <span className="text-on-surface-variant/70 dark:text-white/40">{pedido.id?.substring(0, 8).toUpperCase()}</span>
-                      <span className="w-1 h-1 bg-outline-variant dark:bg-white/20 rounded-full"></span>
+                    <div className="flex flex-wrap items-center gap-3 text-sm mt-1">
+                      <span className="text-on-surface-variant/70 dark:text-white/40 font-mono text-xs">{pedido.id?.substring(0, 8).toUpperCase()}</span>
+                      <span className="w-1 h-1 bg-outline-variant dark:bg-white/20 rounded-full hidden sm:block"></span>
                       <span className="text-on-surface-variant/70 dark:text-white/40">
                         {pedido.created_at ? new Date(pedido.created_at).toLocaleDateString() : 'N/A'}
                       </span>
+                      {pedido.fecha_entrega_esperada_inicio && pedido.fecha_entrega_esperada_fin && (
+                        <>
+                          <span className="w-1 h-1 bg-outline-variant dark:bg-white/20 rounded-full hidden sm:block"></span>
+                          <span className="text-primary dark:text-[#e3b54a] font-bold text-xs bg-primary/10 dark:bg-[#e3b54a]/10 px-2 py-0.5 rounded-md">
+                            Entrega: {new Date(pedido.fecha_entrega_esperada_inicio).toLocaleDateString()} - {new Date(pedido.fecha_entrega_esperada_fin).toLocaleDateString()}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -146,7 +154,7 @@ export function OrderManager() {
                       <p className="text-[10px] uppercase tracking-widest text-on-surface-variant/70 dark:text-white/40 font-bold mb-1">Total</p>
                       <p className="text-xl font-bold text-tertiary dark:text-[#e3b54a]">L {pedido.total}</p>
                     </div>
-                    {pedido.estado === 'Entregado' && (
+                    {['En Tránsito', 'Entregado'].includes(pedido.estado) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -175,7 +183,7 @@ export function OrderManager() {
 
       {/* Modal de Gestión de Pedido */}
       {isModalOpen && selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-surface dark:bg-[#0f0f0f] w-full max-w-2xl rounded-3xl p-6 md:p-8 shadow-2xl border border-outline-variant/30 dark:border-white/10 relative max-h-[90vh] overflow-y-auto hide-scrollbar">
             <h2 className="text-2xl font-bold text-primary dark:text-white mb-2">Gestionar Pedido</h2>
             <p className="text-sm text-on-surface-variant/70 dark:text-white/40 mb-6">Pedido {selectedOrder.id}</p>
@@ -189,29 +197,37 @@ export function OrderManager() {
                 <p className="text-xs font-bold text-tertiary dark:text-[#e3b54a] uppercase tracking-wider mb-1">Total</p>
                 <p className="font-semibold text-on-surface dark:text-white">L {selectedOrder.total}</p>
               </div>
+              {selectedOrder.fecha_entrega_esperada_inicio && selectedOrder.fecha_entrega_esperada_fin && (
+                <div className="md:col-span-2 bg-primary-container/20 dark:bg-[#e3b54a]/10 p-4 rounded-xl border border-primary/20 dark:border-[#e3b54a]/20">
+                  <p className="text-xs font-bold text-primary dark:text-[#e3b54a] uppercase tracking-wider mb-1">Ventana de Entrega Asignada</p>
+                  <p className="font-semibold text-on-surface dark:text-white text-sm">
+                    {new Date(selectedOrder.fecha_entrega_esperada_inicio).toLocaleDateString()} a {new Date(selectedOrder.fecha_entrega_esperada_fin).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="mb-6">
               <p className="text-xs font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-wider mb-2">Detalles del Pedido</p>
-              <div className="bg-white dark:bg-[#1a1a1a] rounded-xl border border-outline-variant/30 dark:border-white/5 overflow-hidden">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-surface dark:bg-black/20 text-on-surface-variant/70 dark:text-white/40">
+              <div className="premium-table-card mt-2">
+                <table className="premium-table">
+                  <thead>
                     <tr>
-                      <th className="p-3 font-semibold">Producto</th>
-                      <th className="p-3 font-semibold">Cant.</th>
-                      <th className="p-3 font-semibold text-right">Subtotal</th>
+                      <th>Producto</th>
+                      <th className="text-center">Cant.</th>
+                      <th className="text-right">Subtotal</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-outline-variant/20 dark:divide-white/5">
+                  <tbody>
                     {selectedOrder.detalles?.map((det: any) => (
-                      <tr key={det.id} className="text-on-surface dark:text-white/90">
-                        <td className="p-3">{det.producto_nombre} <span className="text-xs text-on-surface-variant/50">({det.producto_sku})</span></td>
-                        <td className="p-3 font-bold">{Math.round(Number(det.cantidad))}</td>
-                        <td className="p-3 text-right">L {det.subtotal}</td>
+                      <tr key={det.id}>
+                        <td>{det.producto_nombre} <span className="text-[10px] text-on-surface-variant/50 ml-2">({det.producto_sku})</span></td>
+                        <td className="text-center font-bold">{Math.round(Number(det.cantidad))}</td>
+                        <td className="text-right">L {det.subtotal}</td>
                       </tr>
                     ))}
                     {(!selectedOrder.detalles || selectedOrder.detalles.length === 0) && (
-                      <tr><td colSpan={3} className="p-3 text-center text-on-surface-variant/50">Sin detalles.</td></tr>
+                      <tr><td colSpan={3} className="text-center opacity-50 py-6">Sin detalles.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -255,11 +271,14 @@ export function OrderManager() {
       )}
 
       {/* Production Summary Modal */}
-      <ProductionSummaryModal 
-        isOpen={isProdModalOpen} 
-        onClose={() => setIsProdModalOpen(false)} 
-        pedidos={pedidos} 
-      />
+      {isProdModalOpen && (
+        <ProductionSummaryModal 
+          isOpen={isProdModalOpen} 
+          onClose={() => setIsProdModalOpen(false)}
+          pedidos={pedidos}
+          onOrdersUpdated={cargarPedidos}
+        />
+      )}
 
       {/* Factura Modal */}
       <FacturaModal

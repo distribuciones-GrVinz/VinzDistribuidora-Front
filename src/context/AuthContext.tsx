@@ -7,7 +7,10 @@ interface User {
   email: string;
   rol: string;
   perfil_completado: boolean;
+  cliente_estado?: string;
 }
+
+import { AlertTriangle } from 'lucide-react';
 
 interface AuthContextType {
   user: User | null;
@@ -23,11 +26,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem('vinz_token'));
   const [user, setUser] = useState<User | null>(null);
+  const [showInactivityModal, setShowInactivityModal] = useState(false);
 
   useEffect(() => {
     if (token) {
       try {
-        const decoded = jwtDecode<User & { exp?: number }>(token);
+        const decoded = jwtDecode<User & { exp?: number, cliente_estado?: string }>(token);
         // Verificar si el token ya expiró
         if (decoded.exp && decoded.exp * 1000 < Date.now()) {
           console.warn("Token expirado");
@@ -37,7 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser({
           email: decoded.email,
           rol: decoded.rol,
-          perfil_completado: decoded.perfil_completado || localStorage.getItem('vinz_perfil_completado') === 'true'
+          perfil_completado: decoded.perfil_completado || localStorage.getItem('vinz_perfil_completado') === 'true',
+          cliente_estado: decoded.cliente_estado
         });
       } catch (error) {
         console.error("Token inválido", error);
@@ -57,8 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         inactivityTimer = setTimeout(() => {
           console.warn("Cerrando sesión por inactividad (15 minutos)");
           logout();
-          // Opcional: recargar la página o mostrar un mensaje
-          window.location.reload();
+          setShowInactivityModal(true);
         }, 15 * 60 * 1000); // 15 minutos
       }
     };
@@ -97,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const completeProfile = () => {
     if (user) {
-      setUser({ ...user, perfil_completado: true });
+      setUser({ ...user, perfil_completado: true, cliente_estado: 'Pendiente' });
       localStorage.setItem('vinz_perfil_completado', 'true');
     }
   };
@@ -112,6 +116,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: !!token 
     }}>
       {children}
+      
+      {showInactivityModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-surface dark:bg-[#111] border border-outline-variant/30 dark:border-white/10 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl">
+            <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="w-10 h-10 text-red-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-on-surface dark:text-white mb-4">Sesión Expirada</h2>
+            <p className="text-on-surface-variant dark:text-white/60 mb-8">
+              Tu sesión se ha cerrado automáticamente por inactividad de 15 minutos para proteger tu información.
+            </p>
+            <button
+              onClick={() => {
+                setShowInactivityModal(false);
+                window.location.href = '/login';
+              }}
+              className="w-full bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black py-4 rounded-xl font-bold text-lg hover:scale-[1.02] transition-transform"
+            >
+              Volver a Iniciar Sesión
+            </button>
+          </div>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 }
