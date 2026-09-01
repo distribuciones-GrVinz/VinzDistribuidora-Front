@@ -105,7 +105,7 @@ export function Onboarding() {
           <img src="/sweet_logo.jpg" alt="Vinz Logo" className="h-10 md:h-14 w-auto object-contain mix-blend-multiply mx-auto mb-1.5 relative z-10 rounded-full" />
           <h2 className="text-xl md:text-2xl font-extrabold relative z-10 tracking-tight">¡Bienvenido a VINZ!</h2>
           <p className="mt-1 text-black/80 font-medium relative z-10 text-xs md:text-sm max-w-sm mx-auto leading-snug">
-            Paso Final: Configuración de Empresa. Necesitamos estos datos para habilitar tu catálogo y entregas.
+            Paso Final: Configuración de Perfil. Necesitamos estos datos para habilitar tus pedidos y entregas.
           </p>
         </div>
 
@@ -121,7 +121,7 @@ export function Onboarding() {
           <form onSubmit={handleSubmit} className="space-y-4">
             
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Razón Social <span className="text-gray-400 font-normal ml-1">(Opcional)</span></label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Razón Social / Empresa <span className="text-gray-400 font-normal ml-1">(Opcional, si aplica)</span></label>
               <div className="relative">
                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input 
@@ -138,7 +138,7 @@ export function Onboarding() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">Nombre o Nombre Comercial <span className="text-red-500">*</span></label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Nombre Completo o Comercial <span className="text-red-500">*</span></label>
               <div className="relative">
                 <Store className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input 

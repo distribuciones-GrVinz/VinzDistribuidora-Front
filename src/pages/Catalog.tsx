@@ -74,7 +74,7 @@ export function Catalog() {
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#F2EFE9] dark:bg-[#222222]">
           {prod.imagen_url ? (
             <img 
-              src={prod.imagen_url?.replace(/^https?:\/\/[^\/]+/, '')} 
+              src={prod.imagen_url} 
               alt={prod.nombre} 
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             />

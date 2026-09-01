@@ -269,7 +269,7 @@ export function ProductManager() {
                 {/* Simulated product photo area */}
                 <div className="w-3/4 h-3/4 bg-white/40 dark:bg-[#e3b54a]/10 rounded-full blur-2xl absolute"></div>
                 <img 
-                  src={prod.imagen_url ? prod.imagen_url.replace(/^https?:\/\/[^\/]+/, '') : "/sweet_logo.jpg"} 
+                  src={prod.imagen_url ? prod.imagen_url : "/sweet_logo.jpg"} 
                   alt={prod.nombre} 
                   className={`w-40 relative z-20 drop-shadow-md ${prod.imagen_url ? 'object-contain h-full' : 'opacity-60 dark:opacity-30 mix-blend-multiply dark:mix-blend-screen dark:grayscale'}`}
                 />
@@ -359,7 +359,7 @@ export function ProductManager() {
                     <label className="block text-xs font-semibold mb-2 text-on-surface-variant dark:text-white/60 uppercase tracking-wide">Imagen del Producto (PNG transparente)</label>
                     {editingId && formData.imagen_url && !imagenFile && (
                       <div className="mb-4 flex items-center gap-4 bg-surface-variant/20 dark:bg-[#1a1a1a] p-3 rounded-2xl border border-outline-variant/30">
-                        <img src={formData.imagen_url?.replace(/^https?:\/\/[^\/]+/, '')} alt="Imagen actual" className="w-16 h-16 object-contain bg-white/50 dark:bg-black/40 rounded-xl shadow-sm" />
+                        <img src={formData.imagen_url} alt="Imagen actual" className="w-16 h-16 object-contain bg-white/50 dark:bg-black/40 rounded-xl shadow-sm" />
                         <p className="text-xs text-tertiary dark:text-[#e3b54a] font-bold uppercase tracking-widest">Imagen Actual</p>
                       </div>
                     )}

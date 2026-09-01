@@ -47,7 +47,7 @@ export function ProductImmersiveModal({ producto, onClose }: ProductImmersiveMod
       stock_disponible: 99,
       exento_isv: producto.exento_isv || false,
       imagen: producto.imagen_url
-        ? producto.imagen_url.replace(/^https?:\/\/[^\/]+/, '')
+        ? producto.imagen_url
         : undefined
     });
     onClose();
@@ -103,7 +103,7 @@ export function ProductImmersiveModal({ producto, onClose }: ProductImmersiveMod
             }}
           />
           <img
-            src={producto.imagen_url ? producto.imagen_url.replace(/^https?:\/\/[^\/]+/, '') : '/sweet_logo.jpg'}
+            src={producto.imagen_url ? producto.imagen_url : '/sweet_logo.jpg'}
             alt={producto.nombre}
             className="relative z-10 drop-shadow-2xl"
             style={{
