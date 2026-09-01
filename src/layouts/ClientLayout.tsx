@@ -63,7 +63,7 @@ export function ClientLayout() {
       </div>
 
       {/* Top Navbar — Gold with rounded bottom + scroll-aware title */}
-      <div className="fixed top-0 left-0 w-full z-40">
+      <div className="fixed top-0 left-0 w-full z-40 md:hidden">
         <header
           className="relative w-full px-5 md:px-8 h-14 flex items-center justify-between rounded-b-3xl shadow-[0_10px_40px_rgba(200,159,83,0.35)]"
           style={{ background: 'linear-gradient(90deg, #C89F53 0%, #e3b54a 50%, #C89F53 100%)' }}
