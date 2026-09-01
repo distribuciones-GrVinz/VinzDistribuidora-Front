@@ -194,7 +194,7 @@ export function Login() {
       </div>
 
       {/* Container */}
-      <div className="z-10 w-full max-w-[1000px] px-margin-mobile md:px-margin-desktop py-4 h-[90vh] min-h-[700px] max-h-[1000px] md:min-h-[650px] md:max-h-[850px] relative">
+      <div className="z-10 w-full max-w-[1000px] px-4 sm:px-6 md:px-10 py-6 md:py-4 h-[95vh] md:h-[90vh] min-h-[700px] max-h-[1000px] md:min-h-[650px] md:max-h-[850px] relative">
         <div className={`auth-container w-full h-full shadow-2xl rounded-3xl overflow-hidden relative transition-colors duration-500 ${isAdminMode ? 'bg-black/90 backdrop-blur-md' : 'bg-surface/95 backdrop-blur-md'}`}>
           
           {/* Form Panel (White/Black) */}
@@ -234,7 +234,7 @@ export function Login() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className={`w-full pl-9 pr-4 py-2.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all ${isAdminMode ? 'bg-zinc-900 border border-zinc-800 text-white placeholder-gray-500 focus:bg-black' : 'bg-gray-100 text-black focus:ring-primary'} ${error ? 'ring-2 ring-red-500' : ''}`}
-                        placeholder="admin@vinz.com" 
+                        placeholder="nombre@gmail.com" 
                       />
                     </div>
                   </div>
@@ -336,7 +336,7 @@ export function Login() {
                         value={registerEmail}
                         onChange={(e) => setRegisterEmail(e.target.value)}
                         className={`w-full pl-9 pr-4 py-2.5 text-sm bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary ${error && isRightPanelActive ? 'ring-2 ring-red-500' : ''}`} 
-                        placeholder="tu@empresa.com" 
+                        placeholder="nombre@gmail.com" 
                       />
                     </div>
                   </div>
