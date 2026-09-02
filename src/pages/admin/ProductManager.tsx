@@ -217,10 +217,10 @@ export function ProductManager() {
         <div className="flex flex-wrap gap-2 items-center">
           <button
             onClick={() => setSelectedCategory('all')}
-            className={`px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
+            className={`px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 border ${
               selectedCategory === 'all' 
-                ? 'bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black shadow-md' 
-                : 'bg-surface-variant/50 text-on-surface-variant hover:bg-surface-variant dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10'
+                ? 'bg-tertiary text-white border-tertiary dark:bg-[#e3b54a] dark:text-black dark:border-[#e3b54a] shadow-md scale-105' 
+                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300 shadow-sm dark:bg-black/40 dark:border-white/10 dark:text-white/70 dark:hover:bg-white/10 hover:text-black'
             }`}
           >
             Todos
@@ -229,10 +229,10 @@ export function ProductManager() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.nombre)}
-              className={`px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
+              className={`px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 border ${
                 selectedCategory === cat.nombre 
-                  ? 'bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black shadow-md' 
-                  : 'bg-surface-variant/50 text-on-surface-variant hover:bg-surface-variant dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10'
+                  ? 'bg-tertiary text-white border-tertiary dark:bg-[#e3b54a] dark:text-black dark:border-[#e3b54a] shadow-md scale-105' 
+                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300 shadow-sm dark:bg-black/40 dark:border-white/10 dark:text-white/70 dark:hover:bg-white/10 hover:text-black'
               }`}
             >
               {cat.nombre}
