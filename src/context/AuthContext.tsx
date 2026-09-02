@@ -18,6 +18,7 @@ interface AuthContextType {
   login: (token: string) => void;
   logout: () => void;
   completeProfile: () => void;
+  refreshUserState: () => Promise<boolean>;
   isAuthenticated: boolean;
 }
 
@@ -52,42 +53,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  // Cierre de sesión automático por inactividad (15 minutos)
+  // Cierre de sesión automático por inactividad persistente (15 minutos)
   useEffect(() => {
+    if (!token) return;
+
     let inactivityTimer: ReturnType<typeof setTimeout>;
-    let lastActivity = Date.now();
+    
+    // Al montar, verificamos si ya pasaron 15 mins desde la última vez (incluso en otra pestaña/cierre)
+    const storedLastActivity = localStorage.getItem('vinz_last_activity');
+    let lastActivity = storedLastActivity ? parseInt(storedLastActivity, 10) : Date.now();
+    
+    const now = Date.now();
+    if (now - lastActivity >= 15 * 60 * 1000) {
+      console.warn("Sesión expirada al regresar (pasaron 15 minutos)");
+      logout();
+      setShowInactivityModal(true);
+      return;
+    } else {
+      localStorage.setItem('vinz_last_activity', lastActivity.toString());
+    }
 
     const checkInactivity = () => {
-      if (!token) return;
-      const now = Date.now();
-      if (now - lastActivity >= 15 * 60 * 1000) {
+      if (!localStorage.getItem('vinz_token')) return;
+      const currentNow = Date.now();
+      const currentStored = parseInt(localStorage.getItem('vinz_last_activity') || currentNow.toString(), 10);
+      
+      if (currentNow - currentStored >= 15 * 60 * 1000) {
         console.warn("Cerrando sesión por inactividad (15 minutos)");
         logout();
         setShowInactivityModal(true);
       } else {
-        inactivityTimer = setTimeout(checkInactivity, 15 * 60 * 1000 - (now - lastActivity));
+        inactivityTimer = setTimeout(checkInactivity, 15 * 60 * 1000 - (currentNow - currentStored));
       }
     };
 
     const handleActivity = () => {
-      if (!token) return;
-      const now = Date.now();
-      if (now - lastActivity >= 15 * 60 * 1000) {
+      if (!localStorage.getItem('vinz_token')) return;
+      const currentNow = Date.now();
+      const currentStored = parseInt(localStorage.getItem('vinz_last_activity') || currentNow.toString(), 10);
+      
+      if (currentNow - currentStored >= 15 * 60 * 1000) {
         checkInactivity();
       } else {
-        lastActivity = now;
+        localStorage.setItem('vinz_last_activity', currentNow.toString());
       }
     };
 
-    if (token) {
-      lastActivity = Date.now();
-      inactivityTimer = setTimeout(checkInactivity, 15 * 60 * 1000);
-      window.addEventListener('mousemove', handleActivity);
-      window.addEventListener('keydown', handleActivity);
-      window.addEventListener('scroll', handleActivity);
-      window.addEventListener('click', handleActivity);
-      window.addEventListener('visibilitychange', handleActivity);
-    }
+    inactivityTimer = setTimeout(checkInactivity, 15 * 60 * 1000 - (now - lastActivity));
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    window.addEventListener('scroll', handleActivity);
+    window.addEventListener('click', handleActivity);
+    window.addEventListener('visibilitychange', handleActivity);
 
     return () => {
       if (inactivityTimer) clearTimeout(inactivityTimer);
@@ -108,8 +125,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     localStorage.removeItem('vinz_token');
     localStorage.removeItem('vinz_perfil_completado');
+    localStorage.removeItem('vinz_last_activity');
     setToken(null);
     setUser(null);
+  };
+
+
+  const refreshUserState = async (): Promise<boolean> => {
+    if (!token) return false;
+    try {
+      const apiHost = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:8000/api`;
+      const response = await fetch(`${apiHost}/auth/refresh-state/`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        login(data.access);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error refreshing state", error);
+      return false;
+    }
   };
 
   const completeProfile = () => {
@@ -126,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login, 
       logout, 
       completeProfile,
+      refreshUserState,
       isAuthenticated: !!token 
     }}>
       {children}

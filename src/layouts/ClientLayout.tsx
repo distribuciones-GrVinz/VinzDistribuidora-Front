@@ -6,8 +6,9 @@ import { NotificationBell } from '../components/notifications/NotificationBell';
 import { Clock, ShieldAlert } from 'lucide-react';
 
 export function ClientLayout() {
-  const { user } = useAuth();
+  const { user, refreshUserState } = useAuth();
   const [scrolled, setScrolled] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const isAdmin = user?.rol === 'Administrador';
   const isAprobado = user?.cliente_estado === 'Aprobado';
@@ -42,10 +43,25 @@ export function ClientLayout() {
               : 'Tu información está siendo validada por nuestro equipo. Este proceso puede tardar unos minutos. Podrás acceder al catálogo una vez se apruebe tu perfil.'}
           </p>
           <button
-            onClick={() => window.location.reload()}
-            className="w-full py-3 px-4 bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black font-bold rounded-xl hover:opacity-90 transition-opacity"
+            onClick={async () => {
+              setIsRefreshing(true);
+              await refreshUserState();
+              setIsRefreshing(false);
+            }}
+            disabled={isRefreshing}
+            className={`w-full py-3 px-4 font-bold rounded-xl transition-all flex items-center justify-center ${
+              isRefreshing 
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                : 'bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black hover:opacity-90'
+            }`}
           >
-            Refrescar Estado
+            {isRefreshing ? (
+              <svg className="animate-spin h-5 w-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : null}
+            {isRefreshing ? 'Verificando...' : 'Refrescar Estado'}
           </button>
         </div>
       </div>

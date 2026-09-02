@@ -126,45 +126,46 @@ export function Catalog() {
   };
 
   const renderProductList = (items: Producto[], theme: 'salado' | 'dulce') => {
-    if (items.length % 2 === 0) {
-      return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8 px-1 sm:px-2 md:px-4">
-          {items.map(prod => renderProduct(prod, theme))}
-        </div>
-      );
-    }
-    
-    if (items.length <= 3) {
-      return (
-        <div className="flex overflow-x-auto gap-3 sm:gap-6 md:gap-8 pb-6 snap-x snap-mandatory scroll-smooth hide-scrollbar px-1 sm:px-2 md:px-4">
-          {items.map(prod => (
-            <div key={prod.id} className="w-[calc(50%-0.375rem)] sm:w-[calc(33.3333%-1rem)] md:w-[calc(25%-1.5rem)] xl:w-[calc(20%-1.6rem)] flex-none snap-start">
+    return (
+      <div className="relative group">
+        <div 
+          className="
+            flex overflow-x-auto snap-x snap-mandatory scroll-smooth hide-scrollbar pb-4
+            sm:grid sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 sm:overflow-x-visible sm:pb-0
+            gap-4 sm:gap-6 md:gap-8 px-1 sm:px-2 md:px-4
+          "
+          onScroll={(e) => {
+            const target = e.currentTarget;
+            const arrow = target.nextElementSibling as HTMLElement;
+            if (arrow && target.scrollWidth > target.clientWidth) {
+              if (target.scrollLeft + target.clientWidth >= target.scrollWidth - 10) {
+                arrow.style.opacity = '0';
+              } else {
+                arrow.style.opacity = '1';
+              }
+            }
+          }}
+        >
+          {items.map((prod) => (
+            <div 
+              key={prod.id} 
+              className="w-[160px] sm:w-auto flex-none snap-start"
+            >
               {renderProduct(prod, theme)}
             </div>
           ))}
         </div>
-      );
-    }
-
-    // Impares mayores a 3 (ej: 5, 7, 9)
-    // Se divide en una cuadrícula para los primeros elementos (pares) y un carrusel para los últimos 3
-    const gridItems = items.slice(0, items.length - 3);
-    const carouselItems = items.slice(items.length - 3);
-
-    return (
-      <div className="flex flex-col gap-3 sm:gap-6 md:gap-8">
-        {gridItems.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 md:gap-8 px-1 sm:px-2 md:px-4">
-            {gridItems.map(prod => renderProduct(prod, theme))}
+        
+        {/* Indicador de scroll horizontal (Flechita para móvil) */}
+        {items.length > 2 && (
+          <div className="sm:hidden absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/4 pointer-events-none z-10 transition-opacity duration-300">
+            <div className="bg-black/60 text-white p-2 rounded-full shadow-lg animate-pulse backdrop-blur-sm flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
           </div>
         )}
-        <div className="flex overflow-x-auto gap-3 sm:gap-6 md:gap-8 pb-6 snap-x snap-mandatory scroll-smooth hide-scrollbar px-1 sm:px-2 md:px-4">
-          {carouselItems.map(prod => (
-            <div key={prod.id} className="w-[calc(50%-0.375rem)] sm:w-[calc(33.3333%-1rem)] md:w-[calc(25%-1.5rem)] xl:w-[calc(20%-1.6rem)] flex-none snap-start">
-              {renderProduct(prod, theme)}
-            </div>
-          ))}
-        </div>
       </div>
     );
   };
