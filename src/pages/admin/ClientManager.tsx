@@ -10,6 +10,7 @@ export function ClientManager() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedCliente, setSelectedCliente] = useState<any>(null);
   const [configData, setConfigData] = useState({ estado: 'Pendiente', factor_precio: 1.0 });
   const [priceType, setPriceType] = useState<'normal' | 'descuento' | 'incremento'>('normal');
@@ -163,29 +164,40 @@ export function ClientManager() {
                     <span className="text-lg font-light"> -- </span>
                   </td>
                   <td className="text-right">
-                    <button 
-                      onClick={() => {
-                        setSelectedCliente(cliente);
-                        const factor = parseFloat(cliente.factor_precio) || 1.0;
-                        setConfigData({ estado: cliente.estado || 'Pendiente', factor_precio: factor });
-                        
-                        if (factor < 1.0) {
-                          setPriceType('descuento');
-                          setPricePercentage(Math.round((1.0 - factor) * 100));
-                        } else if (factor > 1.0) {
-                          setPriceType('incremento');
-                          setPricePercentage(Math.round((factor - 1.0) * 100));
-                        } else {
-                          setPriceType('normal');
-                          setPricePercentage('');
-                        }
+                    <div className="flex justify-end gap-2">
+                      <button 
+                        onClick={() => {
+                          setSelectedCliente(cliente);
+                          setIsDetailsModalOpen(true);
+                        }}
+                        className="px-4 py-2 bg-surface-variant/50 dark:bg-white/5 text-on-surface dark:text-white text-xs font-bold uppercase rounded-full hover:bg-surface-variant dark:hover:bg-white/10 transition-colors border border-outline-variant/30 dark:border-white/5"
+                      >
+                        Ver Detalles
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setSelectedCliente(cliente);
+                          const factor = parseFloat(cliente.factor_precio) || 1.0;
+                          setConfigData({ estado: cliente.estado || 'Pendiente', factor_precio: factor });
+                          
+                          if (factor < 1.0) {
+                            setPriceType('descuento');
+                            setPricePercentage(Math.round((1.0 - factor) * 100));
+                          } else if (factor > 1.0) {
+                            setPriceType('incremento');
+                            setPricePercentage(Math.round((factor - 1.0) * 100));
+                          } else {
+                            setPriceType('normal');
+                            setPricePercentage('');
+                          }
 
-                        setIsConfigModalOpen(true);
-                      }}
-                      className="px-4 py-2 bg-primary-container dark:bg-white/10 text-on-primary-container dark:text-white text-xs font-bold uppercase rounded-full hover:bg-tertiary hover:text-white dark:hover:bg-[#e3b54a] dark:hover:text-black transition-colors"
-                    >
-                      Configurar
-                    </button>
+                          setIsConfigModalOpen(true);
+                        }}
+                        className="px-4 py-2 bg-primary-container dark:bg-white/10 text-on-primary-container dark:text-white text-xs font-bold uppercase rounded-full hover:bg-tertiary hover:text-white dark:hover:bg-[#e3b54a] dark:hover:text-black transition-colors"
+                      >
+                        Configurar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -359,6 +371,90 @@ export function ClientManager() {
                 <button type="submit" className="flex-1 py-3 px-4 bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black font-bold rounded-xl shadow-md hover:-translate-y-0.5 transition-transform">Guardar</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal Detalles Cliente */}
+      {isDetailsModalOpen && selectedCliente && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-surface dark:bg-[#0f0f0f] w-full max-w-2xl rounded-3xl p-6 md:p-8 shadow-2xl border border-outline-variant/30 dark:border-white/10 relative max-h-[85vh] overflow-y-auto hide-scrollbar">
+            <h2 className="text-xl md:text-2xl font-bold text-primary dark:text-white mb-6">Detalles del Cliente</h2>
+            
+            <div className="space-y-6">
+              {/* Información General */}
+              <div className="bg-surface-variant/20 dark:bg-black/20 p-5 rounded-2xl border border-outline-variant/30 dark:border-white/5 shadow-sm">
+                <div className="bg-gradient-to-r from-[#e3b54a] to-[#c9923c] px-4 py-2 mb-5 inline-block rounded-lg shadow-sm">
+                  <h3 className="text-[11px] tracking-[0.2em] text-black font-extrabold uppercase">Información del Negocio</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-y-5 gap-x-4 text-sm">
+                  <div>
+                    <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Nombre Comercial</span>
+                    <span className="font-semibold text-on-surface dark:text-white">{selectedCliente.nombre_comercial}</span>
+                  </div>
+                  <div>
+                    <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Razón Social</span>
+                    <span className="font-semibold text-on-surface dark:text-white">{selectedCliente.razon_social || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Identificación Fiscal (RTN)</span>
+                    <span className="font-semibold text-on-surface dark:text-white">{selectedCliente.identificacion_fiscal || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Estado de la Cuenta</span>
+                    <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase inline-block border ${
+                      selectedCliente.estado === 'Aprobado' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' :
+                      selectedCliente.estado === 'Pendiente' ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' :
+                      'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
+                    }`}>
+                      {selectedCliente.estado || 'Pendiente'}
+                    </span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Dirección de Entrega</span>
+                    <span className="font-semibold text-on-surface dark:text-white">{selectedCliente.direccion_entrega}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Información de Contacto */}
+              <div className="bg-surface-variant/20 dark:bg-black/20 p-5 rounded-2xl border border-outline-variant/30 dark:border-white/5 shadow-sm">
+                <div className="bg-gradient-to-r from-[#e3b54a] to-[#c9923c] px-4 py-2 mb-5 inline-block rounded-lg shadow-sm">
+                  <h3 className="text-[11px] tracking-[0.2em] text-black font-extrabold uppercase">Información de Contacto</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-y-5 gap-x-4 text-sm">
+                  <div>
+                    <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Nombre Completo</span>
+                    <span className="font-semibold text-on-surface dark:text-white">{selectedCliente.usuario_detalle?.first_name} {selectedCliente.usuario_detalle?.last_name}</span>
+                  </div>
+                  <div>
+                    <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Correo Electrónico</span>
+                    <span className="font-semibold text-on-surface dark:text-white flex items-center gap-1"><Mail className="w-4 h-4"/> {selectedCliente.usuario_detalle?.email}</span>
+                  </div>
+                  <div>
+                    <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Teléfono Principal</span>
+                    <span className="font-semibold text-on-surface dark:text-white flex items-center gap-1"><Phone className="w-4 h-4"/> {selectedCliente.usuario_detalle?.telefono || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Fecha de Registro</span>
+                    <span className="font-semibold text-on-surface dark:text-white">
+                      {new Date(selectedCliente.usuario_detalle?.date_joined || Date.now()).toLocaleDateString('es-HN', {
+                        year: 'numeric', month: 'long', day: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 text-right">
+              <button 
+                onClick={() => setIsDetailsModalOpen(false)}
+                className="px-6 py-2.5 bg-surface dark:bg-[#1a1a1a] text-on-surface dark:text-white font-bold rounded-xl border border-outline-variant/50 dark:border-white/10 hover:bg-outline-variant/30 dark:hover:bg-white/5"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

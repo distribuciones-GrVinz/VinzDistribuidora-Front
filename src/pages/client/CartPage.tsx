@@ -74,7 +74,7 @@ function SwipeableCartItem({ item, isLast, removeFromCart, updateQuantity }: any
               <input
                 type="number"
                 min={item.unidad_minima}
-                value={item.cantidad || ''}
+                value={item.cantidad ? Math.floor(Number(item.cantidad)) : ''}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
                   if (!isNaN(val) && val >= item.unidad_minima) {
@@ -141,6 +141,8 @@ export function CartPage() {
     fetchFechas();
   }, [token]);
 
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
   const handleCheckout = async () => {
     if (items.length === 0) return;
     
@@ -155,6 +157,7 @@ export function CartPage() {
       
       setSuccess(true);
       clearCart();
+      setShowConfirmModal(false);
       
       // Resetear después de 3 segundos
       setTimeout(() => {
@@ -164,6 +167,7 @@ export function CartPage() {
       
     } catch (err: any) {
       setError(err.message || 'Ocurrió un error al procesar el pedido.');
+      setShowConfirmModal(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -171,6 +175,38 @@ export function CartPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 pt-2 pb-12 md:pt-4 md:pb-12 transition-colors duration-300">
+      {/* Modal de confirmación */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-surface dark:bg-[#1a1a1a] rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-outline-variant/30 dark:border-white/10 animate-in zoom-in-95 duration-200">
+            <h3 className="text-2xl font-bold text-on-surface dark:text-white mb-2">Confirmar Pedido</h3>
+            <p className="text-on-surface-variant dark:text-white/70 mb-6">
+              ¿Estás seguro de que deseas enviar este pedido por un total de <strong>L {totalEstimado.toFixed(2)}</strong>? Una vez enviado, pasará a estar Pendiente de elaboración.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 px-4 py-3 rounded-xl border border-outline-variant dark:border-white/20 text-on-surface dark:text-white font-bold hover:bg-surface-variant/30 dark:hover:bg-white/5 transition-colors"
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleCheckout}
+                className="flex-1 px-4 py-3 rounded-xl bg-primary dark:bg-[#e3b54a] text-on-primary dark:text-black font-bold hover:opacity-90 transition-opacity flex justify-center items-center"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                ) : (
+                  'Sí, Confirmar'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <h1 className="text-4xl md:text-5xl font-headline-xl font-bold mb-12 text-on-surface dark:text-white drop-shadow-sm">Tu Pedido</h1>
 
       {success ? (
@@ -252,7 +288,7 @@ export function CartPage() {
                 </div>
                 
                 <button 
-                  onClick={handleCheckout}
+                  onClick={() => setShowConfirmModal(true)}
                   disabled={isSubmitting}
                   className={`w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all transform hover:-translate-y-1 ${
                     isSubmitting ? 'bg-primary/70 dark:bg-[#e3b54a]/70 cursor-wait' : 'bg-primary dark:bg-[#e3b54a] dark:text-black hover:bg-primary/90 dark:hover:bg-white hover:shadow-primary/30 dark:hover:shadow-[#e3b54a]/30'
