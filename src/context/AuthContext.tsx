@@ -55,26 +55,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Cierre de sesión automático por inactividad (15 minutos)
   useEffect(() => {
     let inactivityTimer: ReturnType<typeof setTimeout>;
+    let lastActivity = Date.now();
 
-    const resetTimer = () => {
-      if (inactivityTimer) clearTimeout(inactivityTimer);
-      if (token) {
-        inactivityTimer = setTimeout(() => {
-          console.warn("Cerrando sesión por inactividad (15 minutos)");
-          logout();
-          setShowInactivityModal(true);
-        }, 15 * 60 * 1000); // 15 minutos
+    const checkInactivity = () => {
+      if (!token) return;
+      const now = Date.now();
+      if (now - lastActivity >= 15 * 60 * 1000) {
+        console.warn("Cerrando sesión por inactividad (15 minutos)");
+        logout();
+        setShowInactivityModal(true);
+      } else {
+        inactivityTimer = setTimeout(checkInactivity, 15 * 60 * 1000 - (now - lastActivity));
       }
     };
 
-    const handleActivity = () => resetTimer();
+    const handleActivity = () => {
+      if (!token) return;
+      const now = Date.now();
+      if (now - lastActivity >= 15 * 60 * 1000) {
+        checkInactivity();
+      } else {
+        lastActivity = now;
+      }
+    };
 
     if (token) {
-      resetTimer();
+      lastActivity = Date.now();
+      inactivityTimer = setTimeout(checkInactivity, 15 * 60 * 1000);
       window.addEventListener('mousemove', handleActivity);
       window.addEventListener('keydown', handleActivity);
       window.addEventListener('scroll', handleActivity);
       window.addEventListener('click', handleActivity);
+      window.addEventListener('visibilitychange', handleActivity);
     }
 
     return () => {
@@ -83,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('keydown', handleActivity);
       window.removeEventListener('scroll', handleActivity);
       window.removeEventListener('click', handleActivity);
+      window.removeEventListener('visibilitychange', handleActivity);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
