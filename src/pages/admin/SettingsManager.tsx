@@ -1,12 +1,28 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { useNotification } from '../../context/NotificationContext';
-import { Calendar, Moon, Sun, Monitor, FileText, Save, AlertTriangle } from 'lucide-react';
+import { Calendar, Moon, Sun, Monitor, FileText, Save, AlertTriangle, QrCode, Download } from 'lucide-react';
 import { getSARConfig, updateSARConfig, getConfiguracionesEntrega, updateConfiguracionesEntrega } from '../../services/adminService';
+import { QRCodeCanvas } from 'qrcode.react';
 
 export function SettingsManager() {
   const { theme, toggleTheme } = useTheme();
   const { showNotification } = useNotification();
+
+  const downloadQR = () => {
+    const canvas = document.getElementById('qr-gen') as HTMLCanvasElement;
+    if (canvas) {
+      const pngUrl = canvas
+        .toDataURL('image/png')
+        .replace('image/png', 'image/octet-stream');
+      const downloadLink = document.createElement('a');
+      downloadLink.href = pngUrl;
+      downloadLink.download = 'vinz-app-qr.png';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    }
+  };
   
   const [sarConfig, setSarConfig] = useState<any>(null);
   const [entregaConfig, setEntregaConfig] = useState<any>(null);
@@ -131,6 +147,49 @@ export function SettingsManager() {
             >
               {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
               <span>{theme === 'light' ? 'Cambiar a Modo Oscuro' : 'Cambiar a Modo Claro'}</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Generador de QR */}
+        <section className="bg-white dark:bg-[#0f0f0f] border border-outline-variant/50 dark:border-white/5 rounded-3xl p-6 md:p-10 shadow-lg dark:shadow-2xl transition-colors">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="bg-surface dark:bg-[#1a1a1a] p-3 rounded-xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none">
+              <QrCode className="w-6 h-6 text-tertiary dark:text-[#e3b54a]" />
+            </div>
+            <h2 className="text-2xl font-headline-lg text-on-surface dark:text-white">Código QR de la App</h2>
+          </div>
+
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-surface dark:bg-[#1a1a1a] rounded-2xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none transition-colors">
+            <div className="flex flex-col items-center gap-4">
+              <div className="bg-white p-4 rounded-xl shadow-inner border border-gray-200">
+                <QRCodeCanvas
+                  id="qr-gen"
+                  value={window.location.origin}
+                  size={180}
+                  level={"H"}
+                  includeMargin={true}
+                  imageSettings={{
+                    src: "/sweet_logo.jpg",
+                    x: undefined,
+                    y: undefined,
+                    height: 40,
+                    width: 40,
+                    excavate: true,
+                  }}
+                />
+              </div>
+              <p className="text-on-surface-variant/70 dark:text-white/40 text-sm max-w-sm text-center">
+                Escanea este código para acceder rápidamente a la aplicación.
+              </p>
+            </div>
+            
+            <button 
+              onClick={downloadQR}
+              className="relative flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold transition-all shadow-md w-full md:w-auto bg-[#e3b54a] text-black hover:bg-[#c89f53] hover:-translate-y-1 dark:shadow-[0_0_20px_rgba(227,181,74,0.2)]"
+            >
+              <Download className="w-5 h-5" />
+              <span>Descargar QR</span>
             </button>
           </div>
         </section>
