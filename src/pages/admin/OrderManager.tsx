@@ -16,8 +16,21 @@ export function OrderManager() {
 
   // Paginación y Filtrado
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(7);
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [itemsPerPage, setItemsPerPage] = useState(() => {
+    const saved = localStorage.getItem('orderManager_itemsPerPage');
+    return saved ? parseInt(saved, 10) : 7;
+  });
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>(() => {
+    return (localStorage.getItem('orderManager_sortOrder') as 'desc' | 'asc') || 'desc';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('orderManager_itemsPerPage', itemsPerPage.toString());
+  }, [itemsPerPage]);
+
+  useEffect(() => {
+    localStorage.setItem('orderManager_sortOrder', sortOrder);
+  }, [sortOrder]);
 
   useEffect(() => {
     setCurrentPage(1);

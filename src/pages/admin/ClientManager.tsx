@@ -13,8 +13,21 @@ export function ClientManager() {
   // Paginación y Filtrado
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(7);
-  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [itemsPerPage, setItemsPerPage] = useState(() => {
+    const saved = localStorage.getItem('clientManager_itemsPerPage');
+    return saved ? parseInt(saved, 10) : 7;
+  });
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>(() => {
+    return (localStorage.getItem('clientManager_sortOrder') as 'desc' | 'asc') || 'desc';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('clientManager_itemsPerPage', itemsPerPage.toString());
+  }, [itemsPerPage]);
+
+  useEffect(() => {
+    localStorage.setItem('clientManager_sortOrder', sortOrder);
+  }, [sortOrder]);
 
   // Reset page when filter or itemsPerPage changes
   useEffect(() => {

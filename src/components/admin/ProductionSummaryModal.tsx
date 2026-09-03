@@ -24,6 +24,8 @@ interface ClientSummary {
 export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdated }: ProductionSummaryModalProps) {
   useLockBodyScroll(isOpen);
   const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
+  const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
+  const [scrollProgress, setScrollProgress] = useState(0);
   const { showNotification } = useNotification();
 
   // Función para verificar si un cliente completó todos sus items
@@ -155,6 +157,26 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
     };
   }, [pedidos, completedItems]);
 
+  const toggleClient = (clientName: string) => {
+    const newSet = new Set(expandedClients);
+    if (newSet.has(clientName)) {
+      newSet.delete(clientName);
+    } else {
+      newSet.add(clientName);
+    }
+    setExpandedClients(newSet);
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const scrollTotal = target.scrollHeight - target.clientHeight;
+    if (scrollTotal > 0) {
+      setScrollProgress((target.scrollTop / scrollTotal) * 100);
+    } else {
+      setScrollProgress(100);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -182,7 +204,10 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 hide-scrollbar bg-surface dark:bg-[#0a0a0a]">
+        <div 
+          className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 hide-scrollbar bg-surface dark:bg-[#0a0a0a] relative scroll-smooth"
+          onScroll={handleScroll}
+        >
           {clients.length === 0 ? (
             <div className="text-center py-16 flex flex-col items-center justify-center">
               <PackageCheck className="w-16 h-16 text-outline-variant dark:text-white/20 mb-4" />
@@ -203,35 +228,44 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
                     className={`bg-white dark:bg-[#151515] border rounded-2xl overflow-hidden shadow-sm flex flex-col transition-all duration-500 ${allCompleted ? 'border-emerald-500/50 bg-emerald-50/50 dark:bg-emerald-950/10 dark:border-emerald-500/30 ring-1 ring-emerald-500/20' : 'border-outline-variant/30 dark:border-white/5'}`}
                   >
                     {/* Cabecera de la Tarjeta del Cliente */}
-                    <div className={`p-5 md:p-6 flex items-center justify-between gap-4 border-b transition-colors ${allCompleted ? 'border-emerald-500/20 bg-emerald-100/30 dark:bg-emerald-900/20' : 'border-outline-variant/10 dark:border-white/5 bg-surface/50 dark:bg-black/20'}`}>
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors duration-500 ${allCompleted ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black'}`}>
-                          {allCompleted ? <CheckSquare className="w-5 h-5" /> : <Store className="w-5 h-5" />}
+                    <div 
+                      onClick={() => toggleClient(client.cliente_nombre)}
+                      className={`p-4 cursor-pointer flex items-center justify-between gap-4 border-b transition-colors hover:bg-surface-variant/30 dark:hover:bg-white/5 ${allCompleted ? 'border-emerald-500/20 bg-emerald-100/30 dark:bg-emerald-900/20' : 'border-outline-variant/10 dark:border-white/5 bg-surface/50 dark:bg-black/20'}`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors duration-500 ${allCompleted ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black'}`}>
+                          {allCompleted ? <CheckSquare className="w-4 h-4" /> : <Store className="w-4 h-4" />}
                         </div>
-                        <h3 className={`text-lg font-bold truncate transition-colors ${allCompleted ? 'text-emerald-700 dark:text-emerald-400' : 'text-on-surface dark:text-white'}`}>
+                        <h3 className={`text-base font-bold truncate transition-colors ${allCompleted ? 'text-emerald-700 dark:text-emerald-400' : 'text-on-surface dark:text-white'}`}>
                           {client.cliente_nombre}
                         </h3>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className={`text-[10px] uppercase tracking-widest font-bold transition-colors ${allCompleted ? 'text-emerald-600/70 dark:text-emerald-400/50' : 'text-on-surface-variant/50 dark:text-white/30'}`}>Total Unds.</p>
-                        <p className={`font-bold text-lg transition-colors ${allCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-tertiary dark:text-[#e3b54a]'}`}>
-                          {client.totalProductos}
-                        </p>
+                      <div className="flex items-center gap-4 shrink-0">
+                        <div className="text-right">
+                          <p className={`text-[9px] uppercase tracking-widest font-bold transition-colors ${allCompleted ? 'text-emerald-600/70 dark:text-emerald-400/50' : 'text-on-surface-variant/50 dark:text-white/30'}`}>Total Unds.</p>
+                          <p className={`font-bold text-base transition-colors ${allCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-tertiary dark:text-[#e3b54a]'}`}>
+                            {client.totalProductos}
+                          </p>
+                        </div>
+                        <div className={`w-6 h-6 flex items-center justify-center rounded-full transition-transform duration-300 ${expandedClients.has(client.cliente_nombre) ? 'rotate-180 bg-outline-variant/30 dark:bg-white/10' : 'bg-transparent text-on-surface-variant/50'}`}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                        </div>
                       </div>
                     </div>
 
                     {/* Mensaje Elegante si todo está completado */}
-                    {allCompleted && (
-                      <div className="px-5 md:px-6 py-3 bg-emerald-100/50 dark:bg-emerald-900/30 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-                        <PackageCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                        <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">¡Todos los productos han sido elaborados para este cliente!</span>
+                    {allCompleted && expandedClients.has(client.cliente_nombre) && (
+                      <div className="px-4 py-3 bg-emerald-100/50 dark:bg-emerald-900/30 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                        <PackageCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">¡Todos los productos han sido elaborados para este cliente!</span>
                       </div>
                     )}
 
                     {/* Detalle Desplegado Automáticamente */}
-                    <div className={`px-5 md:px-6 pb-6 pt-2 overflow-x-auto transition-colors ${allCompleted ? 'bg-emerald-50/30 dark:bg-[#151515]' : 'bg-white dark:bg-[#151515]'}`}>
+                    {expandedClients.has(client.cliente_nombre) && (
+                    <div className={`px-4 pb-4 pt-2 overflow-x-auto transition-colors animate-in fade-in slide-in-from-top-2 ${allCompleted ? 'bg-emerald-50/30 dark:bg-[#151515]' : 'bg-white dark:bg-[#151515]'}`}>
                       <div className="premium-table-card mt-2">
-                        <table className="premium-table">
+                        <table className="premium-table text-sm">
                           <thead>
                             <tr>
                               <th className="w-10">
@@ -288,22 +322,23 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
                         </div>
                       )}
                     </div>
+                    )}
                   </div>
                 )})}
               </div>
 
               {/* Columna Derecha: Total Global (Sticky si es posible) */}
               <div className="lg:col-span-5 xl:col-span-5 min-w-0 w-full shrink-0">
-                <div className="bg-primary-container dark:bg-[#111] border border-primary-container/50 dark:border-[#e3b54a]/20 rounded-3xl p-6 md:p-8 lg:sticky lg:top-0 shadow-lg dark:shadow-none overflow-hidden transition-all duration-500">
-                  <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-primary dark:text-[#e3b54a] mb-6 truncate">Total a Producir (Global)</h3>
+                <div className="bg-primary-container dark:bg-[#111] border border-primary-container/50 dark:border-[#e3b54a]/20 rounded-3xl p-5 md:p-6 lg:sticky lg:top-0 shadow-lg dark:shadow-none overflow-hidden transition-all duration-500">
+                  <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary dark:text-[#e3b54a] mb-5 truncate">Total a Producir (Global)</h3>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {global.map((g, idx) => (
-                      <div key={idx} className={`flex items-center justify-between border-b border-primary/10 dark:border-white/10 pb-4 last:border-0 last:pb-0 gap-4 transition-all duration-500 ${g.remaining === 0 ? 'opacity-30 grayscale' : ''}`}>
-                        <span className={`text-on-surface dark:text-white/90 font-medium truncate transition-all duration-500 ${g.remaining === 0 ? 'line-through' : ''}`}>{g.name}</span>
+                      <div key={idx} className={`flex items-center justify-between border-b border-primary/10 dark:border-white/10 pb-3 last:border-0 last:pb-0 gap-3 transition-all duration-500 ${g.remaining === 0 ? 'opacity-30 grayscale' : ''}`}>
+                        <span className={`text-sm text-on-surface dark:text-white/90 font-medium truncate transition-all duration-500 ${g.remaining === 0 ? 'line-through' : ''}`}>{g.name}</span>
                         
                         <div className="flex flex-col items-end shrink-0">
-                          <span className={`font-bold text-2xl transition-colors duration-500 ${g.remaining === 0 ? 'text-on-surface-variant dark:text-white/50' : 'text-primary dark:text-white'}`}>
+                          <span className={`font-bold text-lg transition-colors duration-500 ${g.remaining === 0 ? 'text-on-surface-variant dark:text-white/50' : 'text-primary dark:text-white'}`}>
                             {g.remaining}
                           </span>
                           {/* Pequeño indicador de completados si hay algunos */}
@@ -317,9 +352,9 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
                     ))}
                   </div>
 
-                  <div className="mt-8 pt-6 border-t border-primary/20 dark:border-white/10">
-                    <p className="text-xs uppercase tracking-widest text-on-surface-variant/70 dark:text-white/40 font-bold mb-2 truncate">Unidades Restantes</p>
-                    <p className="text-5xl font-headline-xl text-primary dark:text-[#e3b54a] truncate transition-all duration-500">
+                  <div className="mt-6 pt-5 border-t border-primary/20 dark:border-white/10">
+                    <p className="text-[10px] uppercase tracking-widest text-on-surface-variant/70 dark:text-white/40 font-bold mb-1 truncate">Unidades Restantes</p>
+                    <p className="text-4xl font-headline-xl text-primary dark:text-[#e3b54a] truncate transition-all duration-500">
                       {global.reduce((acc, curr) => acc + curr.remaining, 0)}
                     </p>
                     
@@ -336,6 +371,24 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
             </div>
           )}
         </div>
+        
+        {/* Floating Circular Progress for Scroll (only shows if there's enough content) */}
+        {clients.length > 3 && (
+          <div 
+            className="absolute bottom-6 right-6 lg:bottom-10 lg:right-10 pointer-events-none z-50 transition-opacity duration-300" 
+            style={{opacity: scrollProgress < 95 && scrollProgress > 0 ? 1 : 0}}
+          >
+            <div className="bg-surface dark:bg-black rounded-full shadow-lg border border-outline-variant/30 dark:border-white/10 p-1 flex items-center justify-center">
+              <svg className="w-10 h-10 transform -rotate-90">
+                <circle className="text-outline-variant/20 dark:text-white/5" strokeWidth="3" stroke="currentColor" fill="transparent" r="16" cx="20" cy="20" />
+                <circle className="text-tertiary dark:text-[#e3b54a] transition-all duration-150" strokeWidth="3" strokeDasharray={16 * 2 * Math.PI} strokeDashoffset={16 * 2 * Math.PI - (scrollProgress / 100) * 16 * 2 * Math.PI} strokeLinecap="round" stroke="currentColor" fill="transparent" r="16" cx="20" cy="20" />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center text-tertiary dark:text-[#e3b54a]">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
