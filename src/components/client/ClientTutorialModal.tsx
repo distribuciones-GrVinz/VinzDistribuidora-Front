@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PartyPopper, ShoppingBag, ClipboardList, Settings, ChevronRight } from 'lucide-react';
+import { PartyPopper, ShoppingBag, ClipboardList, Settings, ChevronRight, ShoppingCart } from 'lucide-react';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 interface ClientTutorialModalProps {
@@ -43,6 +43,13 @@ export function ClientTutorialModal({ userName, currentStep, onStepChange, onClo
       title: 'MIS PEDIDOS',
       headline: 'Seguimiento en tiempo real',
       description: 'Dale seguimiento al estado de tus compras en tiempo real y revisa tu historial de facturación de forma fácil y transparente.',
+      buttonText: 'Siguiente'
+    },
+    {
+      icon: <ShoppingCart className="w-8 h-8 text-primary dark:text-[#e3b54a]" />,
+      title: 'TU PEDIDO',
+      headline: 'Gestiona tu carrito de compras',
+      description: 'Revisa los productos que has seleccionado, ajusta las cantidades y confirma tu pedido cuando estés listo.',
       buttonText: 'Siguiente'
     },
     {

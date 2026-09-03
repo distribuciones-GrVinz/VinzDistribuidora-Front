@@ -9,6 +9,8 @@ import { ToastContainer } from './components/notifications/ToastContainer';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 import { Login } from './pages/Login';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { Onboarding } from './pages/Onboarding';
 
 import { ClientLayout } from './layouts/ClientLayout';
@@ -39,6 +41,8 @@ function App() {
                 <Routes>
                   {/* Rutas Públicas */}
                   <Route path="/login" element={<Login />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password/:uid/:token" element={<ResetPasswordPage />} />
                   
                   {/* Rutas de Tránsito (Requiere Login, pero NO requiere perfil completado) */}
                   <Route path="/completar-perfil" element={

@@ -197,11 +197,11 @@ export function CartPage() {
               </button>
               <button 
                 onClick={handleCheckout}
-                className="flex-1 px-4 py-3 rounded-xl bg-primary dark:bg-[#e3b54a] text-on-primary dark:text-black font-bold hover:opacity-90 transition-opacity flex justify-center items-center"
+                className="flex-1 px-4 py-3 rounded-xl bg-primary dark:bg-[#e3b54a] text-white dark:text-black font-bold hover:opacity-90 transition-opacity flex justify-center items-center"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
-                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white dark:border-black/30 dark:border-t-black rounded-full animate-spin" />
                 ) : (
                   'Sí, Confirmar'
                 )}

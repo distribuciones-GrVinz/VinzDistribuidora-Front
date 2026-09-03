@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Lock, Eye, EyeOff, Mail, User as UserIcon, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
@@ -262,6 +262,11 @@ export function Login() {
                       <input type="checkbox" className="rounded text-primary focus:ring-primary h-3.5 w-3.5" />
                       <span className="text-xs">Recordarme</span>
                     </label>
+                    {!isAdminMode && (
+                      <Link to="/forgot-password" className="text-xs text-primary hover:underline font-semibold">
+                        ¿Olvidaste tu contraseña?
+                      </Link>
+                    )}
                   </div>
                   
                   <button 

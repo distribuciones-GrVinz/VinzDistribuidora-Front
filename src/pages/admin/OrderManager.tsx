@@ -116,8 +116,17 @@ export function OrderManager() {
             ) : filteredPedidos.map((pedido) => (
               <div key={pedido.id} className="group flex flex-col md:flex-row md:items-center justify-between p-6 bg-surface dark:bg-[#1a1a1a] rounded-2xl border border-outline-variant/50 dark:border-white/5 hover:border-tertiary/40 dark:hover:border-[#e3b54a]/30 transition-colors shadow-sm hover:shadow-md dark:shadow-none">
                 <div className="flex items-start gap-4 mb-4 md:mb-0">
-                  <div className={`p-3 rounded-xl flex-shrink-0 ${pedido.estado === 'Pendiente' ? 'bg-primary-container/20 text-primary-container dark:bg-[#e3b54a]/10 dark:text-[#e3b54a]' : pedido.estado === 'En Ruta' ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'}`}>
-                    {pedido.estado === 'Pendiente' ? <Clock className="w-6 h-6" /> : pedido.estado === 'En Ruta' || pedido.estado === 'En Tránsito' ? <Package className="w-6 h-6" /> : <CheckCircle className="w-6 h-6" />}
+                  <div className={`p-3 rounded-xl flex-shrink-0 ${
+                    pedido.estado === 'Pendiente' ? 'bg-primary-container/20 text-primary-container dark:bg-[#e3b54a]/10 dark:text-[#e3b54a]' : 
+                    pedido.estado === 'Elaborado' ? 'bg-teal-100 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400' : 
+                    ['En Ruta', 'En Tránsito'].includes(pedido.estado) ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' : 
+                    pedido.estado === 'Cancelado' ? 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400' :
+                    'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'
+                  }`}>
+                    {pedido.estado === 'Pendiente' ? <Clock className="w-6 h-6" /> : 
+                     pedido.estado === 'Elaborado' ? <CheckCircle className="w-6 h-6" /> : 
+                     ['En Ruta', 'En Tránsito'].includes(pedido.estado) ? <Package className="w-6 h-6" /> : 
+                     <CheckCircle className="w-6 h-6" />}
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-widest text-on-surface-variant/70 dark:text-white/40 font-bold mb-1">Tienda / Razón Social</p>
@@ -235,7 +244,7 @@ export function OrderManager() {
                   className="flex-1 bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-3 px-4 text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]"
                 >
                   <option value="Pendiente">Pendiente</option>
-                  <option value="Confirmado">Confirmado</option>
+                  <option value="Elaborado">Elaborado</option>
                   <option value="En Tránsito">En Tránsito</option>
                   <option value="Entregado">Entregado</option>
                   <option value="Cancelado">Cancelado</option>
