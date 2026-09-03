@@ -207,8 +207,8 @@ export function Login() {
                 <div className="my-auto w-full max-w-sm mx-auto">
                   <div className="mb-4 flex justify-center cursor-pointer select-none" onClick={handleLogoClick}>
                     {isAdminMode ? (
-                      <div className="bg-white rounded-full p-2 h-16 w-16 md:h-20 md:w-20 flex items-center justify-center shadow-lg">
-                        <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="w-full h-full object-contain" />
+                      <div className="bg-white rounded-full h-16 w-16 md:h-20 md:w-20 flex items-center justify-center shadow-lg overflow-hidden border-2 border-white">
+                        <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="w-full h-full object-cover scale-[1.35]" />
                       </div>
                     ) : (
                       <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="h-16 md:h-20 w-auto object-contain mix-blend-multiply" />
