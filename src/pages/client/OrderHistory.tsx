@@ -112,7 +112,7 @@ export function OrderHistory() {
                     <div className="mt-2 bg-primary/10 dark:bg-[#e3b54a]/10 px-3 py-1.5 rounded-md inline-block">
                       <p className="text-xs font-bold text-primary dark:text-[#e3b54a] uppercase tracking-wider mb-0.5">Entrega Esperada:</p>
                       <p className="text-sm font-medium text-on-surface dark:text-white">
-                        {new Date(pedido.fecha_entrega_esperada_inicio).toLocaleDateString()} a {new Date(pedido.fecha_entrega_esperada_fin).toLocaleDateString()}
+                        {new Date(pedido.fecha_entrega_esperada_inicio + "T12:00:00").toLocaleDateString()} a {new Date(pedido.fecha_entrega_esperada_fin + "T12:00:00").toLocaleDateString()}
                       </p>
                     </div>
                   )}

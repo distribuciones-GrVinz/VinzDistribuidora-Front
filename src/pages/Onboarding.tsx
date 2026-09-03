@@ -102,7 +102,7 @@ export function Onboarding() {
         {/* Header */}
         <div className="bg-gradient-to-r from-[#e3b54a] to-[#d4a038] p-4 md:p-5 text-center text-black relative flex-shrink-0">
           <div className="absolute inset-0 bg-white/10 mix-blend-overlay"></div>
-          <img src="/sweet_logo.jpg" alt="Vinz Logo" className="h-10 md:h-14 w-auto object-contain mix-blend-multiply mx-auto mb-1.5 relative z-10 rounded-full" />
+          <img src="/sweet_logo.jpg" alt="Vinz Logo" className="h-10 md:h-14 w-auto object-cover scale-[1.3] mix-blend-multiply mx-auto mb-1.5 relative z-10 rounded-full" />
           <h2 className="text-xl md:text-2xl font-extrabold relative z-10 tracking-tight">¡Bienvenido a VINZ!</h2>
           <p className="mt-1 text-black/80 font-medium relative z-10 text-xs md:text-sm max-w-sm mx-auto leading-snug">
             Paso Final: Configuración de Perfil. Necesitamos estos datos para habilitar tus pedidos y entregas.

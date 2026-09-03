@@ -71,7 +71,7 @@ export function ResetPasswordPage() {
           
           <div className="mb-6 flex justify-center">
             <div className="bg-white rounded-full h-16 w-16 md:h-20 md:w-20 flex items-center justify-center shadow-lg overflow-hidden border-2 border-white">
-              <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="w-full h-full object-cover scale-[1.35]" />
+              <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="w-full h-full object-cover scale-[1.8]" />
             </div>
           </div>
 

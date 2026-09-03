@@ -36,7 +36,7 @@ export function AdminLayout() {
           {/* Left: Logo */}
           <div className="z-10 flex items-center">
             <div className="w-8 h-8 rounded-full overflow-hidden border border-[#3D2B1F]/30 shadow-sm bg-[#F9F6F0] shrink-0 flex items-center justify-center">
-              <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="w-full h-full object-cover scale-[1.35]" />
+              <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="w-full h-full object-cover scale-[1.8]" />
             </div>
           </div>
 

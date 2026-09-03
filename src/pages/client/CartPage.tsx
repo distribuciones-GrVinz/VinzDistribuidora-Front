@@ -280,7 +280,7 @@ export function CartPage() {
                     <div className="bg-primary-container/30 dark:bg-[#e3b54a]/10 p-4 rounded-xl border border-primary/20 dark:border-[#e3b54a]/20 mt-4 mb-4">
                       <h4 className="text-sm font-bold text-primary dark:text-[#e3b54a] mb-1">Fecha Estimada de Entrega:</h4>
                       <p className="text-sm text-on-surface dark:text-white/90">
-                        Entre el <span className="font-bold">{new Date(fechasEntrega.inicio).toLocaleDateString()}</span> y el <span className="font-bold">{new Date(fechasEntrega.fin).toLocaleDateString()}</span>
+                        Entre el <span className="font-bold">{new Date(fechasEntrega.inicio + "T12:00:00").toLocaleDateString()}</span> y el <span className="font-bold">{new Date(fechasEntrega.fin + "T12:00:00").toLocaleDateString()}</span>
                       </p>
                     </div>
                   )}

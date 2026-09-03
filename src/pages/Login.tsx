@@ -57,6 +57,7 @@ export function Login() {
         login(data.access);
         try {
           const payload = JSON.parse(atob(data.access.split('.')[1]));
+          // Enrutamiento automático
           if (payload.rol === 'Administrador') {
             navigate('/admin');
           } else if (!payload.perfil_completado) {
@@ -105,15 +106,7 @@ export function Login() {
         try {
           const payload = JSON.parse(atob(data.access.split('.')[1]));
           
-          // Validación estricta de portal
-          if (isAdminMode && payload.rol !== 'Administrador') {
-            setError('Acceso denegado: Usa el portal de clientes.');
-            return;
-          }
-          if (!isAdminMode && payload.rol === 'Administrador') {
-            setError('Acceso denegado: Usa el portal de administrador.');
-            return;
-          }
+          // Enrutamiento automático basado en el rol, sin importar desde dónde se conecte
 
           if (payload.rol === 'Administrador') {
             navigate('/admin'); // o '/dashboard' cuando lo creemos
@@ -209,10 +202,10 @@ export function Login() {
                   <div className="mb-4 flex justify-center cursor-pointer select-none" onClick={handleLogoClick}>
                     {isAdminMode ? (
                       <div className="bg-white rounded-full h-16 w-16 md:h-20 md:w-20 flex items-center justify-center shadow-lg overflow-hidden border-2 border-white">
-                        <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="w-full h-full object-cover scale-[1.35]" />
+                        <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="w-full h-full object-cover scale-[1.8]" />
                       </div>
                     ) : (
-                      <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="h-16 md:h-20 w-auto object-contain mix-blend-multiply" />
+                      <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="h-16 md:h-20 w-auto object-cover scale-[1.3] rounded-full mix-blend-multiply" />
                     )}
                   </div>
                 <div className="mb-6 text-center">
@@ -313,7 +306,7 @@ export function Login() {
               <div className={`transition-opacity duration-400 absolute inset-0 p-6 md:p-8 flex flex-col justify-center ${isRightPanelActive ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
                 <div className="my-auto w-full max-w-sm mx-auto">
                   <div className="mb-4 flex justify-center select-none">
-                    <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="h-12 md:h-16 w-auto object-contain mix-blend-multiply" />
+                    <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="h-12 md:h-16 w-auto object-cover scale-[1.3] rounded-full mix-blend-multiply" />
                   </div>
                   <div className="mb-5 text-center">
                     <p className="text-xs text-primary uppercase tracking-wider mb-1 font-bold">Únete a la familia</p>

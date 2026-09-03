@@ -118,7 +118,7 @@ export function ClientLayout() {
           {/* Left: Logo */}
           <div className="z-10 flex items-center">
             <div className="w-8 h-8 rounded-full overflow-hidden border border-[#3D2B1F]/30 shadow-sm bg-[#F9F6F0] shrink-0 flex items-center justify-center">
-              <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="w-full h-full object-cover scale-[1.35]" />
+              <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="w-full h-full object-cover scale-[1.8]" />
             </div>
           </div>
 
@@ -129,7 +129,7 @@ export function ClientLayout() {
               style={{
                 opacity: scrolled || location.pathname !== '/catalogo' ? 1 : 0,
                 transform: scrolled || location.pathname !== '/catalogo' ? 'translateY(0)' : 'translateY(15px)',
-                transition: 'opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                transition: location.pathname === '/catalogo' ? 'opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none',
               }}
             >
               <span
