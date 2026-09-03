@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { X, Plus, Minus, Copy, Check, Search, PlusCircle, Trash2, FileDown, ChevronDown } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
+import { ScrollProgressIndicator } from '../ui/ScrollProgressIndicator';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -27,6 +28,7 @@ interface QuoteModalProps {
 
 export function QuoteModal({ isOpen, onClose, productos }: QuoteModalProps) {
   useLockBodyScroll(isOpen);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const { showNotification } = useNotification();
   const [items, setItems] = useState<QuoteItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -256,7 +258,7 @@ export function QuoteModal({ isOpen, onClose, productos }: QuoteModalProps) {
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-8">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-8 relative scroll-smooth">
           
           {/* Add Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -421,6 +423,9 @@ export function QuoteModal({ isOpen, onClose, productos }: QuoteModalProps) {
             </button>
           </div>
         </div>
+
+        {/* Scroll Indicator */}
+        <ScrollProgressIndicator targetRef={scrollRef} />
 
       </div>
     </div>

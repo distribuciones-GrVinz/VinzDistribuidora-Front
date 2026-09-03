@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, ShoppingCart, Minus, Plus } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
+import { ScrollProgressIndicator } from '../ui/ScrollProgressIndicator';
 
 interface ProductImmersiveModalProps {
   producto: {
@@ -79,6 +80,7 @@ export function ProductImmersiveModal({ producto, onClose }: ProductImmersiveMod
         onClick={handleBackdropClick}
         className="fixed inset-0 z-[10000] flex items-start md:items-center justify-center overflow-y-auto bg-surface/95 dark:bg-[#080603]/95 backdrop-blur-md"
       >
+        <ScrollProgressIndicator targetRef={overlayRef} />
 
       {/* Close button */}
       <button

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Printer, CheckCircle } from 'lucide-react';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
+import { ScrollProgressIndicator } from '../ui/ScrollProgressIndicator';
 import { getSARConfig } from '../../services/adminService';
 
 function numeroALetras(num: number): string {
@@ -62,10 +63,12 @@ interface FacturaModalProps {
   isOpen: boolean;
   onClose: () => void;
   pedido: any;
+  isClientView?: boolean;
 }
 
 export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
   useLockBodyScroll(isOpen);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [sarConfig, setSarConfig] = useState<any>(null);
   
   // Editable fields for the invoice (Client)
@@ -304,8 +307,11 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
           </div>
         </div>
 
-        {/* Contenido Imprimible */}
-        <div className="flex-1 overflow-auto p-4 md:p-6 bg-gray-100 dark:bg-black/20 flex justify-center items-start">
+        {/* Preview Container */}
+        <div 
+          ref={scrollRef}
+          className="flex-1 overflow-auto p-4 md:p-6 bg-gray-100 dark:bg-black/20 flex justify-center items-start relative scroll-smooth"
+        >
           <div id="factura-content" className="bg-white text-black p-6 w-[21.59cm] min-w-[21.59cm] shrink-0 shadow-lg rounded-xl flex flex-col relative mx-auto">
             
             <div className="flex justify-between items-start mb-4">
@@ -517,6 +523,10 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
             </div>
           </div>
         </div>
+        
+        {/* Indicador de scroll flotante */}
+        <ScrollProgressIndicator targetRef={scrollRef} />
+        
       </div>
     </div>
   );

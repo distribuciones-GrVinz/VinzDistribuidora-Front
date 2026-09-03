@@ -1,5 +1,6 @@
 import { X, ChefHat, Store, PackageCheck, FileText, CheckSquare, Square } from 'lucide-react';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { ScrollProgressIndicator } from '../ui/ScrollProgressIndicator';
 import { updateEstadoPedido } from '../../services/adminService';
 import { useNotification } from '../../context/NotificationContext';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
@@ -25,7 +26,7 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
   useLockBodyScroll(isOpen);
   const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const { showNotification } = useNotification();
 
   // Función para verificar si un cliente completó todos sus items
@@ -167,16 +168,6 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
     setExpandedClients(newSet);
   };
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    const scrollTotal = target.scrollHeight - target.clientHeight;
-    if (scrollTotal > 0) {
-      setScrollProgress((target.scrollTop / scrollTotal) * 100);
-    } else {
-      setScrollProgress(100);
-    }
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -205,8 +196,8 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
 
         {/* Content */}
         <div 
+          ref={scrollRef}
           className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 hide-scrollbar bg-surface dark:bg-[#0a0a0a] relative scroll-smooth"
-          onScroll={handleScroll}
         >
           {clients.length === 0 ? (
             <div className="text-center py-16 flex flex-col items-center justify-center">
@@ -372,23 +363,8 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
           )}
         </div>
         
-        {/* Floating Circular Progress for Scroll (only shows if there's enough content) */}
-        {clients.length > 3 && (
-          <div 
-            className="absolute bottom-6 right-6 lg:bottom-10 lg:right-10 pointer-events-none z-50 transition-opacity duration-300" 
-            style={{opacity: scrollProgress < 95 && scrollProgress > 0 ? 1 : 0}}
-          >
-            <div className="bg-surface dark:bg-black rounded-full shadow-lg border border-outline-variant/30 dark:border-white/10 p-1 flex items-center justify-center">
-              <svg className="w-10 h-10 transform -rotate-90">
-                <circle className="text-outline-variant/20 dark:text-white/5" strokeWidth="3" stroke="currentColor" fill="transparent" r="16" cx="20" cy="20" />
-                <circle className="text-tertiary dark:text-[#e3b54a] transition-all duration-150" strokeWidth="3" strokeDasharray={16 * 2 * Math.PI} strokeDashoffset={16 * 2 * Math.PI - (scrollProgress / 100) * 16 * 2 * Math.PI} strokeLinecap="round" stroke="currentColor" fill="transparent" r="16" cx="20" cy="20" />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center text-tertiary dark:text-[#e3b54a]">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Floating Circular Progress for Scroll */}
+        <ScrollProgressIndicator targetRef={scrollRef} />
 
       </div>
     </div>
