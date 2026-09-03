@@ -10,6 +10,17 @@ export function ClientManager() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
+  // Paginación y Filtrado
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(7);
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+
+  // Reset page when filter or itemsPerPage changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, itemsPerPage]);
+  
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedCliente, setSelectedCliente] = useState<any>(null);
@@ -101,6 +112,30 @@ export function ClientManager() {
 
   return (
     <div className="max-w-6xl mx-auto pt-2 pb-8 md:pt-4 md:pb-8 mb-20 transition-colors duration-300">
+      {(() => {
+        const filteredClientes = clientes.filter(c => {
+          if (!searchTerm) return true;
+          const term = searchTerm.toLowerCase();
+          return (
+            c.nombre_comercial?.toLowerCase().includes(term) ||
+            c.usuario_detalle?.first_name?.toLowerCase().includes(term) ||
+            c.usuario_detalle?.last_name?.toLowerCase().includes(term) ||
+            c.usuario_detalle?.email?.toLowerCase().includes(term)
+          );
+        });
+
+        const sortedClientes = [...filteredClientes].sort((a, b) => {
+          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+        });
+
+        const totalPages = Math.ceil(sortedClientes.length / itemsPerPage) || 1;
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const currentItems = sortedClientes.slice(startIndex, startIndex + itemsPerPage);
+
+        return (
+          <>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 mt-8">
         <div>
@@ -117,12 +152,17 @@ export function ClientManager() {
             <input 
               type="text" 
               placeholder="Buscar por nombre o contacto..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-white dark:bg-[#1a1a1a] border border-outline-variant/50 dark:border-white/10 rounded-full py-2.5 px-5 text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a] transition-colors text-sm"
             />
           </div>
           <div className="flex gap-2 w-full md:w-auto">
-            <button className="flex-1 md:flex-none px-5 py-2.5 bg-white dark:bg-[#1a1a1a] text-on-surface dark:text-white rounded-full text-xs font-bold border border-outline-variant/50 dark:border-white/10 hover:bg-outline-variant/30 dark:hover:bg-white/5 transition-colors shadow-sm">
-              Filtrar
+            <button 
+              onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+              className="flex-1 md:flex-none px-5 py-2.5 bg-white dark:bg-[#1a1a1a] text-on-surface dark:text-white rounded-full text-xs font-bold border border-outline-variant/50 dark:border-white/10 hover:bg-outline-variant/30 dark:hover:bg-white/5 transition-colors shadow-sm"
+            >
+              Ordenar: {sortOrder === 'desc' ? 'Más recientes' : 'Más antiguos'}
             </button>
             <button 
               onClick={() => setIsModalOpen(true)}
@@ -150,7 +190,7 @@ export function ClientManager() {
                 <tr>
                   <td colSpan={5} className="text-center opacity-50 py-10">Cargando clientes...</td>
                 </tr>
-              ) : clientes.map((cliente) => (
+              ) : currentItems.map((cliente) => (
                 <tr key={cliente.id} className="group">
                   <td>
                     <div className="flex items-center gap-4">
@@ -230,22 +270,51 @@ export function ClientManager() {
         
         {/* Footer Paginación */}
         <div className="p-6 border-t border-outline-variant/30 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 bg-surface/30 dark:bg-[#121212]">
-          <p className="text-sm text-on-surface-variant dark:text-white/60 font-medium">
-            Mostrando <span className="font-bold text-primary dark:text-white">{clientes.length}</span> clientes
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-on-surface-variant dark:text-white/60 font-medium">
+              Mostrando <span className="font-bold text-primary dark:text-white">{startIndex + 1}</span> - <span className="font-bold text-primary dark:text-white">{Math.min(startIndex + itemsPerPage, sortedClientes.length)}</span> de <span className="font-bold text-primary dark:text-white">{sortedClientes.length}</span> clientes
+            </p>
+            
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-on-surface-variant dark:text-white/40">Por pág:</span>
+              <div className="flex bg-white dark:bg-[#1a1a1a] rounded-lg border border-outline-variant/50 dark:border-white/10 overflow-hidden">
+                {[4, 7, 10].map(num => (
+                  <button
+                    key={num}
+                    onClick={() => setItemsPerPage(num)}
+                    className={`px-3 py-1 text-xs font-bold transition-colors ${itemsPerPage === num ? 'bg-primary text-white dark:bg-white dark:text-black' : 'text-on-surface-variant hover:bg-surface dark:text-white/60 dark:hover:bg-white/5'}`}
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          
           <div className="flex items-center gap-2">
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant/50 dark:border-white/10 text-on-surface-variant hover:bg-surface dark:hover:bg-white/5 transition-colors">
+            <button 
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant/50 dark:border-white/10 text-on-surface-variant hover:bg-surface dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
               {'<'}
             </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary dark:bg-white text-white dark:text-black font-bold shadow-md">
-              1
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant/50 dark:border-white/10 text-on-surface-variant hover:bg-surface dark:hover:bg-white/5 transition-colors">
+            <span className="text-sm font-bold w-10 text-center text-primary dark:text-white">
+              {currentPage} / {totalPages}
+            </span>
+            <button 
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant/50 dark:border-white/10 text-on-surface-variant hover:bg-surface dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
               {'>'}
             </button>
           </div>
         </div>
       </div>
+          </>
+        );
+      })()}
 
       {/* Modal Agregar Cliente */}
       {isModalOpen && (
