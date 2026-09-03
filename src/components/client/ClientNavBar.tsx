@@ -4,7 +4,7 @@ import { Store, ClipboardList, ShoppingCart, User } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { motion } from 'framer-motion';
 
-export function ClientNavBar() {
+export function ClientNavBar({ tutorialStep }: { tutorialStep?: number | null }) {
   const location = useLocation();
   const { items } = useCart();
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
@@ -26,16 +26,17 @@ export function ClientNavBar() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 md:bottom-auto md:left-8 md:top-1/2 md:-translate-y-1/2 md:translate-x-0 z-50 w-full md:w-auto h-[72px] md:h-auto max-h-[72px] md:max-h-none">
+      <nav className={`fixed bottom-0 left-0 md:bottom-auto md:left-8 md:top-1/2 md:-translate-y-1/2 md:translate-x-0 w-full md:w-auto h-[72px] md:h-auto max-h-[72px] md:max-h-none transition-all duration-300 ${tutorialStep ? 'z-[110]' : 'z-50'}`}>
         <div 
-          className="flex flex-row md:flex-col items-center justify-around md:justify-center bg-white/95 dark:bg-[#1a1a1a]/95 md:bg-transparent md:dark:bg-transparent backdrop-blur-2xl md:backdrop-blur-none border-t border-primary/10 dark:border-white/10 md:border-none rounded-t-3xl md:rounded-none px-4 py-2 md:p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.3)] md:shadow-none w-full h-[72px] md:h-auto max-h-[72px] md:max-h-none"
+          className={`flex flex-row md:flex-col items-center justify-around md:justify-center md:bg-transparent md:dark:bg-transparent backdrop-blur-2xl md:backdrop-blur-none border-t border-primary/10 dark:border-white/10 md:border-none rounded-t-3xl md:rounded-none px-4 py-2 md:p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.3)] md:shadow-none w-full h-[72px] md:h-auto max-h-[72px] md:max-h-none transition-all duration-300 ${tutorialStep ? 'bg-transparent dark:bg-transparent' : 'bg-white/95 dark:bg-[#1a1a1a]/95'}`}
           onMouseLeave={() => setHoveredPath(null)}
         >
         
-        {navItems.map((item) => {
+        {navItems.map((item, index) => {
           const isActive = item.end ? location.pathname === item.to : location.pathname.startsWith(item.to);
           const isCurrent = currentPath === item.to;
           const isCart = item.to === '/carrito';
+          const isHighlighted = tutorialStep === index + 1; // +1 porque el paso 0 es bienvenida
 
           return (
             <NavLink
@@ -43,9 +44,13 @@ export function ClientNavBar() {
               to={item.to}
               end={item.end}
               onMouseEnter={() => setHoveredPath(item.to)}
-              className="group relative flex flex-col md:flex-row items-center justify-center w-16 h-14 md:w-14 md:h-14 md:my-1 rounded-2xl transition-colors duration-300 z-10"
+              className={`group relative flex flex-col md:flex-row items-center justify-center w-16 h-14 md:w-14 md:h-14 md:my-1 rounded-2xl transition-all duration-300 ${
+                isHighlighted 
+                  ? 'z-[110] bg-surface dark:bg-[#1a1a1a] shadow-[0_0_20px_rgba(227,181,74,0.4)] scale-110' 
+                  : (tutorialStep ? 'z-10 opacity-30 grayscale' : 'z-10')
+              }`}
               style={{
-                color: isActive 
+                color: isActive || isHighlighted
                   ? 'var(--color-tertiary)' 
                   : 'var(--color-on-surface-variant)'
               }}

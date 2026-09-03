@@ -1,7 +1,8 @@
 import { X, ChefHat, Store, PackageCheck, FileText, CheckSquare, Square } from 'lucide-react';
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { updateEstadoPedido } from '../../services/adminService';
 import { useNotification } from '../../context/NotificationContext';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 interface ProductionSummaryModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ interface ClientSummary {
 }
 
 export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdated }: ProductionSummaryModalProps) {
+  useLockBodyScroll(isOpen);
   const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
   const { showNotification } = useNotification();
 

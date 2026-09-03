@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { getPedidos, updateEstadoPedido } from '../../services/adminService';
 import { ProductionSummaryModal } from '../../components/admin/ProductionSummaryModal';
 import { FacturaModal } from '../../components/admin/FacturaModal';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 export function OrderManager() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -17,16 +18,7 @@ export function OrderManager() {
     cargarPedidos();
   }, []);
 
-  useEffect(() => {
-    if (isModalOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isModalOpen]);
+  useLockBodyScroll(isModalOpen || isProdModalOpen || isFacturaModalOpen);
 
   const cargarPedidos = async () => {
     try {

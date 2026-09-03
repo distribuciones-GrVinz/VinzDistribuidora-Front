@@ -4,11 +4,41 @@ import { ClientNavBar } from '../components/client/ClientNavBar';
 import { useAuth } from '../context/AuthContext';
 import { NotificationBell } from '../components/notifications/NotificationBell';
 import { Clock, ShieldAlert } from 'lucide-react';
+import { ClientTutorialModal } from '../components/client/ClientTutorialModal';
 
 export function ClientLayout() {
   const { user, refreshUserState } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
+
+  useEffect(() => {
+    console.log("Tutorial Debug -> user?.id:", user?.id);
+    if (user?.id) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const forceTutorial = urlParams.get('tutorial') === '1';
+      const hasSeen = localStorage.getItem(`vinz_tutorial_seen_${user.id}`);
+      
+      console.log(`Tutorial Debug -> hasSeen for ID ${user.id}:`, hasSeen, "force:", forceTutorial);
+      
+      if (!hasSeen || forceTutorial) {
+        console.log("Tutorial Debug -> Setting timer to show tutorial in 1s");
+        const timer = setTimeout(() => {
+          console.log("Tutorial Debug -> showTutorial set to TRUE");
+          setShowTutorial(true);
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user?.id]);
+
+  const handleTutorialClose = () => {
+    if (user?.id) {
+      localStorage.setItem(`vinz_tutorial_seen_${user.id}`, 'true');
+    }
+    setShowTutorial(false);
+  };
 
   const isAdmin = user?.rol === 'Administrador';
   const isAprobado = user?.cliente_estado === 'Aprobado';
@@ -126,7 +156,16 @@ export function ClientLayout() {
         <Outlet />
       </main>
 
-      <ClientNavBar />
+      <ClientNavBar tutorialStep={showTutorial ? tutorialStep : null} />
+
+      {showTutorial && (
+        <ClientTutorialModal 
+          userName={user?.email ? user.email.split('@')[0] : ''} 
+          currentStep={tutorialStep}
+          onStepChange={setTutorialStep}
+          onClose={handleTutorialClose} 
+        />
+      )}
     </div>
   );
 }

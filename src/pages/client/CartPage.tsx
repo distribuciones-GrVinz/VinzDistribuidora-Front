@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import { motion, useAnimation, type PanInfo } from 'framer-motion';
+
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { clientService } from '../../services/clientService';
 
 function SwipeableCartItem({ item, isLast, removeFromCart, updateQuantity }: any) {
@@ -114,6 +116,9 @@ export function CartPage() {
   const [success, setSuccess] = useState(false);
   const [notas, setNotas] = useState('');
   const [fechasEntrega, setFechasEntrega] = useState<{inicio: string, fin: string} | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  useLockBodyScroll(showConfirmModal);
 
   const subtotal = items.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
   const isv = items.reduce((sum, item) => {
@@ -141,7 +146,6 @@ export function CartPage() {
     fetchFechas();
   }, [token]);
 
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const handleCheckout = async () => {
     if (items.length === 0) return;

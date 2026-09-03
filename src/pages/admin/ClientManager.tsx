@@ -2,6 +2,7 @@ import { Mail, Phone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getClientes, createClienteAdmin, updateCliente } from '../../services/adminService';
 import { useNotification } from '../../context/NotificationContext';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 export function ClientManager() {
   const { showNotification } = useNotification();
@@ -15,6 +16,8 @@ export function ClientManager() {
   const [configData, setConfigData] = useState({ estado: 'Pendiente', factor_precio: 1.0 });
   const [priceType, setPriceType] = useState<'normal' | 'descuento' | 'incremento'>('normal');
   const [pricePercentage, setPricePercentage] = useState<number | string>('');
+
+  useLockBodyScroll(isModalOpen || isConfigModalOpen || isDetailsModalOpen);
   
   const [formData, setFormData] = useState({
     email: '',

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit2, Search, Trash2, FileText } from 'lucide-react';
 import { getProductos, getCategorias, createProducto, updateProducto, deleteProducto } from '../../services/adminService';
 import { QuoteModal } from '../../components/admin/QuoteModal';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 interface Producto {
   id: string;
@@ -22,6 +23,8 @@ export function ProductManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [imagenFile, setImagenFile] = useState<File | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useLockBodyScroll(isModalOpen || isQuoteModalOpen);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   // Prevenir scroll del fondo al abrir modales

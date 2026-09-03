@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Printer, CheckCircle } from 'lucide-react';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { getSARConfig } from '../../services/adminService';
 
 interface FacturaModalProps {
@@ -9,6 +10,7 @@ interface FacturaModalProps {
 }
 
 export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
+  useLockBodyScroll(isOpen);
   const [sarConfig, setSarConfig] = useState<any>(null);
   
   // Editable fields for the invoice (Client)

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
 interface User {
+  id: string;
   email: string;
   rol: string;
   perfil_completado: boolean;
@@ -11,6 +12,7 @@ interface User {
 }
 
 import { AlertTriangle } from 'lucide-react';
+import { useLockBodyScroll } from '../hooks/useLockBodyScroll';
 
 interface AuthContextType {
   user: User | null;
@@ -29,10 +31,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [showInactivityModal, setShowInactivityModal] = useState(false);
 
+  useLockBodyScroll(showInactivityModal);
+
   useEffect(() => {
     if (token) {
       try {
-        const decoded = jwtDecode<User & { exp?: number, cliente_estado?: string }>(token);
+        const decoded = jwtDecode<User & { exp?: number, cliente_estado?: string, usuario_id?: string }>(token);
         // Verificar si el token ya expiró
         if (decoded.exp && decoded.exp * 1000 < Date.now()) {
           console.warn("Token expirado");
@@ -40,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
         setUser({
+          id: decoded.usuario_id || '',
           email: decoded.email,
           rol: decoded.rol,
           perfil_completado: decoded.perfil_completado || localStorage.getItem('vinz_perfil_completado') === 'true',

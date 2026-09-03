@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ShoppingCart, Minus, Plus } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 interface ProductImmersiveModalProps {
   producto: {
@@ -20,6 +21,8 @@ export function ProductImmersiveModal({ producto, onClose }: ProductImmersiveMod
   const { addToCart } = useCart();
   const overlayRef = useRef<HTMLDivElement>(null);
   const [cantidad, setCantidad] = useState(1);
+
+  useLockBodyScroll(true);
 
   // Close on backdrop click
   const handleBackdropClick = (e: React.MouseEvent) => {

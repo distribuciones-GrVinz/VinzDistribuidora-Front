@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { X, Plus, Minus, Copy, Check, Search, PlusCircle, Trash2, FileDown, ChevronDown } from 'lucide-react';
 import { useNotification } from '../../context/NotificationContext';
+import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -25,6 +26,7 @@ interface QuoteModalProps {
 }
 
 export function QuoteModal({ isOpen, onClose, productos }: QuoteModalProps) {
+  useLockBodyScroll(isOpen);
   const { showNotification } = useNotification();
   const [items, setItems] = useState<QuoteItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
