@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { PasswordStrengthMeter } from '../components/PasswordStrengthMeter';
 
 export function ResetPasswordPage() {
   const { uid, token } = useParams<{ uid: string; token: string }>();
@@ -97,6 +98,7 @@ export function ResetPasswordPage() {
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                  <PasswordStrengthMeter password={password} />
                 </div>
 
                 <div>

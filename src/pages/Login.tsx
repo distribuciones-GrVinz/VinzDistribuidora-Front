@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Lock, Eye, EyeOff, Mail, User as UserIcon, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { GoogleLogin } from '@react-oauth/google';
+import { PasswordStrengthMeter } from '../components/PasswordStrengthMeter';
 
 export function Login() {
   const [isRightPanelActive, setIsRightPanelActive] = useState(false);
@@ -360,6 +361,7 @@ export function Login() {
                         {showRegisterPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
+                    <PasswordStrengthMeter password={registerPassword} />
                   </div>
                   {error && isRightPanelActive && <p className="text-red-500 text-sm font-medium">{error}</p>}
 
