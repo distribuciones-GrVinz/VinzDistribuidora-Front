@@ -3,6 +3,53 @@ import { X, Printer, CheckCircle } from 'lucide-react';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { getSARConfig } from '../../services/adminService';
 
+function numeroALetras(num: number): string {
+  if (num === 0) return 'CERO LEMPIRAS CON 00/100';
+  
+  const unidades = ['', 'UN ', 'DOS ', 'TRES ', 'CUATRO ', 'CINCO ', 'SEIS ', 'SIETE ', 'OCHO ', 'NUEVE '];
+  const decenas = ['DIEZ ', 'ONCE ', 'DOCE ', 'TRECE ', 'CATORCE ', 'QUINCE ', 'DIECISEIS ', 'DIECISIETE ', 'DIECIOCHO ', 'DIECINUEVE '];
+  const decenas2 = ['', '', 'VEINTE ', 'TREINTA ', 'CUARENTA ', 'CINCUENTA ', 'SESENTA ', 'SETENTA ', 'OCHENTA ', 'NOVENTA '];
+  const centenas = ['', 'CIENTO ', 'DOSCIENTOS ', 'TRESCIENTOS ', 'CUATROCIENTOS ', 'QUINIENTOS ', 'SEISCIENTOS ', 'SETECIENTOS ', 'OCHOCIENTOS ', 'NOVECIENTOS '];
+
+  const getUnidades = (n: number) => unidades[n];
+  const getDecenas = (n: number) => {
+    if (n < 10) return getUnidades(n);
+    if (n < 20) return decenas[n - 10];
+    const u = n % 10;
+    if (n === 20) return 'VEINTE ';
+    if (n < 30) return 'VEINTI' + getUnidades(u).trim() + ' ';
+    return decenas2[Math.floor(n / 10)] + (u > 0 ? 'Y ' + getUnidades(u) : '');
+  };
+  const getCentenas = (n: number) => {
+    if (n === 100) return 'CIEN ';
+    const d = n % 100;
+    return centenas[Math.floor(n / 100)] + (d > 0 ? getDecenas(d) : '');
+  };
+  const getMiles = (n: number) => {
+    const c = n % 1000;
+    const m = Math.floor(n / 1000);
+    if (m === 0) return getCentenas(c);
+    if (m === 1) return 'MIL ' + getCentenas(c);
+    return getCentenas(m) + 'MIL ' + (c > 0 ? getCentenas(c) : '');
+  };
+  const getMillones = (n: number) => {
+    const m = n % 1000000;
+    const mi = Math.floor(n / 1000000);
+    if (mi === 0) return getMiles(m);
+    if (mi === 1) return 'UN MILLON ' + (m > 0 ? getMiles(m) : '');
+    return getMiles(mi) + 'MILLONES ' + (m > 0 ? getMiles(m) : '');
+  };
+
+  const entero = Math.floor(num);
+  const decimales = Math.round((num - entero) * 100);
+  
+  const letrasEntero = getMillones(entero).trim();
+  const moneda = entero === 1 ? 'LEMPIRA' : 'LEMPIRAS';
+  const strDecimales = decimales.toString().padStart(2, '0');
+  
+  return `${letrasEntero} ${moneda} CON ${strDecimales}/100 EXACTOS`.trim();
+}
+
 interface FacturaModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -97,8 +144,10 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
 
     iframeDoc.open();
     iframeDoc.write(`
+      <!DOCTYPE html>
       <html>
         <head>
+          <meta charset="utf-8">
           <title>Factura Pedido #${pedido.id.split('-')[0].toUpperCase()}</title>
           ${styleTags}
           <style>
@@ -109,6 +158,10 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                 -webkit-print-color-adjust: exact !important;
                 color-adjust: exact !important;
                 print-color-adjust: exact !important;
+              }
+              .page-break {
+                page-break-before: always !important;
+                break-before: page !important;
               }
               .watermark { 
                 position: absolute;
@@ -408,24 +461,9 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
               
               {/* Bloque Izquierdo (Info SAR y Legal) */}
               <div className="flex-1 w-full text-[10px] text-gray-600 space-y-3">
-                <div className="bg-gray-50 border border-gray-200 rounded-md p-2 space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2/3">No. Correlativo Orden de Compra Exenta:</span>
-                    <span className="w-1/3 border-b border-gray-400"></span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2/3">No. Correlativo Constancia Exonerado:</span>
-                    <span className="w-1/3 border-b border-gray-400"></span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2/3">No. Identificativo de Registro de SAG:</span>
-                    <span className="w-1/3 border-b border-gray-400"></span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2">
                   <span className="font-bold">Son:</span>
-                  <span className="flex-1 border-b border-gray-400 text-transparent select-none">________________________________________________</span>
+                  <span className="flex-1 font-medium italic uppercase">{numeroALetras(granTotal)}</span>
                 </div>
 
                 <div className="pt-1 text-[9px] space-y-1">
