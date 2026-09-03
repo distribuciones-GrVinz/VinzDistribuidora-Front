@@ -141,7 +141,7 @@ export function OrderManager() {
                         <>
                           <span className="w-1 h-1 bg-outline-variant dark:bg-white/20 rounded-full hidden sm:block"></span>
                           <span className="text-primary dark:text-[#e3b54a] font-bold text-xs bg-primary/10 dark:bg-[#e3b54a]/10 px-2 py-0.5 rounded-md">
-                            Entrega: {new Date(pedido.fecha_entrega_esperada_inicio + "T12:00:00").toLocaleDateString()} - {new Date(pedido.fecha_entrega_esperada_fin + "T12:00:00").toLocaleDateString()}
+                            Entrega: {new Date(pedido.fecha_entrega_esperada_inicio + "T12:00:00").toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} - {new Date(pedido.fecha_entrega_esperada_fin + "T12:00:00").toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                           </span>
                         </>
                       )}
@@ -202,7 +202,7 @@ export function OrderManager() {
                 <div className="md:col-span-2 bg-primary-container/20 dark:bg-[#e3b54a]/10 p-4 rounded-xl border border-primary/20 dark:border-[#e3b54a]/20">
                   <p className="text-xs font-bold text-primary dark:text-[#e3b54a] uppercase tracking-wider mb-1">Ventana de Entrega Asignada</p>
                   <p className="font-semibold text-on-surface dark:text-white text-sm">
-                    {new Date(selectedOrder.fecha_entrega_esperada_inicio + "T12:00:00").toLocaleDateString()} a {new Date(selectedOrder.fecha_entrega_esperada_fin + "T12:00:00").toLocaleDateString()}
+                    {new Date(selectedOrder.fecha_entrega_esperada_inicio + "T12:00:00").toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} a {new Date(selectedOrder.fecha_entrega_esperada_fin + "T12:00:00").toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                   </p>
                 </div>
               )}

@@ -69,6 +69,22 @@ export function ClientSettings() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    // Validación estricta en tiempo real: Solo letras para nombres
+    if (name === 'first_name' || name === 'last_name' || name === 'razon_social' || name === 'nombre_comercial') {
+      if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(value)) {
+        return; 
+      }
+    }
+    
+    // Validación estricta en tiempo real: Solo números para teléfonos y RTN
+    if (name === 'telefono' || name === 'identificacion_fiscal') {
+      // Permitimos solo números (y guiones porque a veces la gente los pone en el RTN)
+      if (/[^0-9-]/.test(value)) {
+        return;
+      }
+    }
+
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 

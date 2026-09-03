@@ -47,6 +47,26 @@ export function ClientManager() {
     }
   };
 
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    // Validación estricta en tiempo real: Solo letras para nombres
+    if (name === 'first_name' || name === 'last_name' || name === 'razon_social' || name === 'nombre_comercial') {
+      if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(value)) {
+        return; 
+      }
+    }
+    
+    // Validación estricta en tiempo real: Solo números para teléfonos y RTN
+    if (name === 'telefono' || name === 'identificacion_fiscal') {
+      if (/[^0-9-]/.test(value)) {
+        return;
+      }
+    }
+
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -239,19 +259,19 @@ export function ClientManager() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-semibold mb-1 text-on-surface-variant dark:text-white/60">Nombre Comercial</label>
-                  <input required type="text" value={formData.nombre_comercial} onChange={e => setFormData({...formData, nombre_comercial: e.target.value})} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
+                  <input name="nombre_comercial" required type="text" value={formData.nombre_comercial} onChange={handleFormChange} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold mb-1 text-on-surface-variant dark:text-white/60">Razón Social</label>
-                  <input type="text" value={formData.razon_social} onChange={e => setFormData({...formData, razon_social: e.target.value})} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
+                  <input name="razon_social" type="text" value={formData.razon_social} onChange={handleFormChange} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold mb-1 text-on-surface-variant dark:text-white/60">Identificación Fiscal</label>
-                  <input type="text" value={formData.identificacion_fiscal} onChange={e => setFormData({...formData, identificacion_fiscal: e.target.value})} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
+                  <input name="identificacion_fiscal" type="text" value={formData.identificacion_fiscal} onChange={handleFormChange} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
                 </div>
                 <div className="col-span-2">
                   <label className="block text-[10px] font-semibold mb-1 text-on-surface-variant dark:text-white/60">Dirección de Entrega</label>
-                  <input required type="text" value={formData.direccion_entrega} onChange={e => setFormData({...formData, direccion_entrega: e.target.value})} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
+                  <input name="direccion_entrega" required type="text" value={formData.direccion_entrega} onChange={handleFormChange} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
                 </div>
               </div>
 
@@ -259,23 +279,23 @@ export function ClientManager() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-semibold mb-1 text-on-surface-variant dark:text-white/60">Nombres</label>
-                  <input required type="text" value={formData.first_name} onChange={e => setFormData({...formData, first_name: e.target.value})} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
+                  <input name="first_name" required type="text" value={formData.first_name} onChange={handleFormChange} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-semibold mb-1 text-on-surface-variant dark:text-white/60">Apellidos</label>
-                  <input required type="text" value={formData.last_name} onChange={e => setFormData({...formData, last_name: e.target.value})} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
+                  <input name="last_name" required type="text" value={formData.last_name} onChange={handleFormChange} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
                 </div>
                 <div className="col-span-2 md:col-span-1">
                   <label className="block text-[10px] font-semibold mb-1 text-on-surface-variant dark:text-white/60">Correo Electrónico</label>
-                  <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
+                  <input name="email" required type="email" value={formData.email} onChange={handleFormChange} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
                 </div>
                 <div className="col-span-2 md:col-span-1">
                   <label className="block text-[10px] font-semibold mb-1 text-on-surface-variant dark:text-white/60">Teléfono</label>
-                  <input type="text" value={formData.telefono} onChange={e => setFormData({...formData, telefono: e.target.value})} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
+                  <input name="telefono" type="text" value={formData.telefono} onChange={handleFormChange} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
                 </div>
                 <div className="col-span-2">
                   <label className="block text-[10px] font-semibold mb-1 text-on-surface-variant dark:text-white/60">Contraseña Temporal</label>
-                  <input required type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
+                  <input name="password" required type="password" value={formData.password} onChange={handleFormChange} className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-1.5 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]" />
                 </div>
               </div>
               

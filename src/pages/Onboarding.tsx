@@ -45,6 +45,14 @@ export function Onboarding() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    
+    // Validación estricta en tiempo real: Solo letras para nombres
+    if (name === 'razon_social' || name === 'nombre_comercial') {
+      if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(value)) {
+        return; // Bloquea la escritura de números o caracteres especiales
+      }
+    }
+
     let processedValue = value;
     
     if (name === 'identificacion_fiscal') {
