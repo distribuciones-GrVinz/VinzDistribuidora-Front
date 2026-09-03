@@ -14,6 +14,15 @@ export function OrderManager() {
   const [isFacturaModalOpen, setIsFacturaModalOpen] = useState(false);
   const [filterTab, setFilterTab] = useState<'Pendientes' | 'Transito' | 'Historial'>('Pendientes');
 
+  // Paginación y Filtrado
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(7);
+  const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterTab, itemsPerPage]);
+
   useEffect(() => {
     cargarPedidos();
   }, []);
@@ -46,6 +55,18 @@ export function OrderManager() {
       return true;
     });
   }, [pedidos, filterTab]);
+
+  const sortedPedidos = useMemo(() => {
+    return [...filteredPedidos].sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+    });
+  }, [filteredPedidos, sortOrder]);
+
+  const totalPages = Math.ceil(sortedPedidos.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = sortedPedidos.slice(startIndex, startIndex + itemsPerPage);
 
   const handleStatusChange = async (pedidoId: string, nuevoEstado: string) => {
     try {
@@ -87,33 +108,41 @@ export function OrderManager() {
         </div>
 
         <div className="relative z-10">
-          <div className="flex gap-4 mb-8 border-b border-outline-variant/50 dark:border-white/10 pb-4 overflow-x-auto hide-scrollbar">
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8 border-b border-outline-variant/50 dark:border-white/10 pb-4">
+            <div className="flex gap-4 overflow-x-auto hide-scrollbar">
+              <button 
+                onClick={() => setFilterTab('Pendientes')}
+                className={`pb-2 font-bold px-4 whitespace-nowrap transition-colors ${filterTab === 'Pendientes' ? 'text-tertiary dark:text-[#e3b54a] border-b-2 border-tertiary dark:border-[#e3b54a]' : 'text-on-surface-variant/50 hover:text-on-surface dark:text-white/40 dark:hover:text-white'}`}
+              >
+                Nuevos / Pendientes
+              </button>
+              <button 
+                onClick={() => setFilterTab('Transito')}
+                className={`pb-2 font-bold px-4 whitespace-nowrap transition-colors ${filterTab === 'Transito' ? 'text-tertiary dark:text-[#e3b54a] border-b-2 border-tertiary dark:border-[#e3b54a]' : 'text-on-surface-variant/50 hover:text-on-surface dark:text-white/40 dark:hover:text-white'}`}
+              >
+                En Tránsito
+              </button>
+              <button 
+                onClick={() => setFilterTab('Historial')}
+                className={`pb-2 font-bold px-4 whitespace-nowrap transition-colors ${filterTab === 'Historial' ? 'text-tertiary dark:text-[#e3b54a] border-b-2 border-tertiary dark:border-[#e3b54a]' : 'text-on-surface-variant/50 hover:text-on-surface dark:text-white/40 dark:hover:text-white'}`}
+              >
+                Historial
+              </button>
+            </div>
             <button 
-              onClick={() => setFilterTab('Pendientes')}
-              className={`pb-2 font-bold px-4 whitespace-nowrap transition-colors ${filterTab === 'Pendientes' ? 'text-tertiary dark:text-[#e3b54a] border-b-2 border-tertiary dark:border-[#e3b54a]' : 'text-on-surface-variant/50 hover:text-on-surface dark:text-white/40 dark:hover:text-white'}`}
+              onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+              className="px-4 py-1.5 bg-surface-variant/30 dark:bg-white/5 text-on-surface dark:text-white rounded-full text-[10px] font-bold border border-outline-variant/30 dark:border-white/10 hover:bg-surface-variant/50 dark:hover:bg-white/10 transition-colors uppercase tracking-wider"
             >
-              Nuevos / Pendientes
-            </button>
-            <button 
-              onClick={() => setFilterTab('Transito')}
-              className={`pb-2 font-bold px-4 whitespace-nowrap transition-colors ${filterTab === 'Transito' ? 'text-tertiary dark:text-[#e3b54a] border-b-2 border-tertiary dark:border-[#e3b54a]' : 'text-on-surface-variant/50 hover:text-on-surface dark:text-white/40 dark:hover:text-white'}`}
-            >
-              En Tránsito
-            </button>
-            <button 
-              onClick={() => setFilterTab('Historial')}
-              className={`pb-2 font-bold px-4 whitespace-nowrap transition-colors ${filterTab === 'Historial' ? 'text-tertiary dark:text-[#e3b54a] border-b-2 border-tertiary dark:border-[#e3b54a]' : 'text-on-surface-variant/50 hover:text-on-surface dark:text-white/40 dark:hover:text-white'}`}
-            >
-              Historial
+              Orden: {sortOrder === 'desc' ? 'Más recientes' : 'Más antiguos'}
             </button>
           </div>
 
           <div className="space-y-4">
             {loading ? (
               <div className="text-center py-8 text-on-surface-variant/50">Cargando pedidos...</div>
-            ) : filteredPedidos.length === 0 ? (
+            ) : sortedPedidos.length === 0 ? (
               <div className="text-center py-8 text-on-surface-variant/50">No hay pedidos en esta sección.</div>
-            ) : filteredPedidos.map((pedido) => (
+            ) : currentItems.map((pedido) => (
               <div key={pedido.id} className="group flex flex-col md:flex-row md:items-center justify-between p-6 bg-surface dark:bg-[#1a1a1a] rounded-2xl border border-outline-variant/50 dark:border-white/5 hover:border-tertiary/40 dark:hover:border-[#e3b54a]/30 transition-colors shadow-sm hover:shadow-md dark:shadow-none">
                 <div className="flex items-start gap-4 mb-4 md:mb-0">
                   <div className={`p-3 rounded-xl flex-shrink-0 ${
@@ -179,6 +208,52 @@ export function OrderManager() {
               </div>
             ))}
           </div>
+
+          {/* Footer Paginación */}
+          {sortedPedidos.length > 0 && (
+            <div className="mt-8 pt-6 border-t border-outline-variant/30 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <p className="text-sm text-on-surface-variant dark:text-white/60 font-medium">
+                  <span className="font-bold text-primary dark:text-white">{startIndex + 1}</span> - <span className="font-bold text-primary dark:text-white">{Math.min(startIndex + itemsPerPage, sortedPedidos.length)}</span> de <span className="font-bold text-primary dark:text-white">{sortedPedidos.length}</span> pedidos
+                </p>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-on-surface-variant dark:text-white/40">Por pág:</span>
+                  <div className="flex bg-white dark:bg-[#1a1a1a] rounded-lg border border-outline-variant/50 dark:border-white/10 overflow-hidden">
+                    {[4, 7, 10].map(num => (
+                      <button
+                        key={num}
+                        onClick={() => setItemsPerPage(num)}
+                        className={`px-3 py-1 text-xs font-bold transition-colors ${itemsPerPage === num ? 'bg-primary text-white dark:bg-white dark:text-black' : 'text-on-surface-variant hover:bg-surface dark:text-white/60 dark:hover:bg-white/5'}`}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant/50 dark:border-white/10 text-on-surface-variant hover:bg-surface dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  {'<'}
+                </button>
+                <span className="text-sm font-bold w-10 text-center text-primary dark:text-white">
+                  {currentPage} / {totalPages}
+                </span>
+                <button 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant/50 dark:border-white/10 text-on-surface-variant hover:bg-surface dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  {'>'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

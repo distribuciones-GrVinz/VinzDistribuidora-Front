@@ -272,7 +272,7 @@ export function ClientManager() {
         <div className="p-6 border-t border-outline-variant/30 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 bg-surface/30 dark:bg-[#121212]">
           <div className="flex items-center gap-4">
             <p className="text-sm text-on-surface-variant dark:text-white/60 font-medium">
-              Mostrando <span className="font-bold text-primary dark:text-white">{startIndex + 1}</span> - <span className="font-bold text-primary dark:text-white">{Math.min(startIndex + itemsPerPage, sortedClientes.length)}</span> de <span className="font-bold text-primary dark:text-white">{sortedClientes.length}</span> clientes
+              <span className="font-bold text-primary dark:text-white">{startIndex + 1}</span> - <span className="font-bold text-primary dark:text-white">{Math.min(startIndex + itemsPerPage, sortedClientes.length)}</span> de <span className="font-bold text-primary dark:text-white">{sortedClientes.length}</span> clientes
             </p>
             
             <div className="flex items-center gap-2">
