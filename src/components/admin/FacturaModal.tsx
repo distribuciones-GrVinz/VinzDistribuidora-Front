@@ -4,7 +4,7 @@ import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { getSARConfig } from '../../services/adminService';
 
 function numeroALetras(num: number): string {
-  if (num === 0) return 'CERO LEMPIRAS CON 00/100';
+  if (num === 0) return 'CERO LEMPIRAS CON CERO CENTAVOS';
   
   const unidades = ['', 'UN ', 'DOS ', 'TRES ', 'CUATRO ', 'CINCO ', 'SEIS ', 'SIETE ', 'OCHO ', 'NUEVE '];
   const decenas = ['DIEZ ', 'ONCE ', 'DOCE ', 'TRECE ', 'CATORCE ', 'QUINCE ', 'DIECISEIS ', 'DIECISIETE ', 'DIECIOCHO ', 'DIECINUEVE '];
@@ -43,11 +43,19 @@ function numeroALetras(num: number): string {
   const entero = Math.floor(num);
   const decimales = Math.round((num - entero) * 100);
   
-  const letrasEntero = getMillones(entero).trim();
+  const letrasEntero = entero === 0 ? 'CERO' : getMillones(entero).trim();
   const moneda = entero === 1 ? 'LEMPIRA' : 'LEMPIRAS';
-  const strDecimales = decimales.toString().padStart(2, '0');
   
-  return `${letrasEntero} ${moneda} CON ${strDecimales}/100 EXACTOS`.trim();
+  let letrasDecimales = '';
+  if (decimales === 0) {
+    letrasDecimales = 'CERO CENTAVOS';
+  } else if (decimales === 1) {
+    letrasDecimales = 'UN CENTAVO';
+  } else {
+    letrasDecimales = getDecenas(decimales).trim() + ' CENTAVOS';
+  }
+  
+  return `${letrasEntero} ${moneda} CON ${letrasDecimales}`.trim();
 }
 
 interface FacturaModalProps {
@@ -93,7 +101,9 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
             setSarConfig(config);
             if (config) {
               setEmpresaNombre(config.razon_social || 'Sweet & Tasty');
-              setEmpresaDireccion(config.direccion || '');
+              let dir = config.direccion || '';
+              dir = dir.replace(/\uFFFD/g, 'á').replace(/Morazn/g, 'Morazán').replace(/Moraz.n/g, 'Morazán');
+              setEmpresaDireccion(dir);
               setEmpresaTelefono(config.telefono || '');
               setEmpresaEmail(config.correo || '');
               setEmpresaRTN(config.rtn || '');
@@ -163,19 +173,13 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                 page-break-before: always !important;
                 break-before: page !important;
               }
-              .watermark { 
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%) rotate(-45deg);
-                font-size: 32px;
+              .copy-label {
+                text-align: right;
                 font-weight: 900;
-                color: rgba(227, 181, 74, 0.15) !important;
-                text-transform: uppercase;
-                letter-spacing: 4px;
-                z-index: -1;
-                pointer-events: none;
-                white-space: nowrap;
+                font-size: 14px;
+                color: #555 !important;
+                margin-bottom: 10px;
+                letter-spacing: 1px;
               }
               input[type="text"], textarea { 
                 border: none !important; 
@@ -209,12 +213,12 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
         </head>
         <body class="bg-white text-black p-0 m-0 relative">
           <div style="padding: 1cm 1.5cm 1cm 1.5cm; position: relative; z-index: 1;">
-            <div class="watermark">ORIGINAL: CLIENTE</div>
+            <div class="copy-label">ORIGINAL: CLIENTE</div>
             ${printContent.outerHTML}
           </div>
           <div class="page-break"></div>
           <div style="padding: 1cm 1.5cm 1cm 1.5cm; position: relative; z-index: 1;">
-            <div class="watermark">COPIA: EMISOR</div>
+            <div class="copy-label">COPIA: EMISOR</div>
             ${printContent.outerHTML}
           </div>
         </body>
@@ -460,16 +464,18 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
             <div className="flex flex-col md:flex-row gap-4 items-start mt-auto">
               
               {/* Bloque Izquierdo (Info SAR y Legal) */}
-              <div className="flex-1 w-full text-[10px] text-gray-600 space-y-3">
-                <div className="flex items-start gap-2">
-                  <span className="font-bold">Son:</span>
-                  <span className="flex-1 font-medium italic uppercase">{numeroALetras(granTotal)}</span>
-                </div>
+              <div className="flex-1 w-full text-[10px] text-gray-600">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-3">
+                  <div className="flex items-start gap-2 text-[11px]">
+                    <span className="font-bold whitespace-nowrap pt-1">Son:</span>
+                    <span className="flex-1 font-medium italic uppercase border-b border-gray-400 pb-1">{numeroALetras(granTotal)}</span>
+                  </div>
 
-                <div className="pt-1 text-[9px] space-y-1">
-                  <p><span className="font-bold">Rango Autorizado:</span> {getRango(sarConfig?.rango_inicial || 1)} al {getRango(sarConfig?.rango_final || 1)}</p>
-                  <p><span className="font-bold">Fecha Límite de Emisión:</span> {limiteEmision}</p>
-                  <p className="font-bold text-[#e3b54a] text-[10px] mt-1.5 uppercase tracking-wide">LA FACTURA ES BENEFICIO DE TODOS: ¡EXÍJALA!</p>
+                  <div className="pt-2 text-[9px] space-y-1">
+                    <p><span className="font-bold">Rango Autorizado:</span> {getRango(sarConfig?.rango_inicial || 1)} al {getRango(sarConfig?.rango_final || 1)}</p>
+                    <p><span className="font-bold">Fecha Límite de Emisión:</span> {limiteEmision}</p>
+                    <p className="font-bold text-[#e3b54a] text-[10px] mt-2 uppercase tracking-wide">LA FACTURA ES BENEFICIO DE TODOS: ¡EXÍJALA!</p>
+                  </div>
                 </div>
               </div>
 
