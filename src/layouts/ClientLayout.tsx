@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { ClientNavBar } from '../components/client/ClientNavBar';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +7,7 @@ import { Clock, ShieldAlert } from 'lucide-react';
 import { ClientTutorialModal } from '../components/client/ClientTutorialModal';
 
 export function ClientLayout() {
+  const location = useLocation();
   const { user, refreshUserState } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -121,13 +122,13 @@ export function ClientLayout() {
             </div>
           </div>
 
-          {/* Center: Brand name perfectly centered, enters elegantly on scroll */}
+          {/* Center: Brand name perfectly centered, enters elegantly on scroll in catalogo */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <div
               className="leading-none text-center"
               style={{
-                opacity: scrolled ? 1 : 0,
-                transform: scrolled ? 'translateY(0)' : 'translateY(15px)',
+                opacity: scrolled || location.pathname !== '/catalogo' ? 1 : 0,
+                transform: scrolled || location.pathname !== '/catalogo' ? 'translateY(0)' : 'translateY(15px)',
                 transition: 'opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)',
               }}
             >

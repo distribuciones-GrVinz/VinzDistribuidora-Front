@@ -69,7 +69,9 @@ export function ResetPasswordPage() {
         <div className="auth-container w-full bg-surface/95 backdrop-blur-md shadow-2xl rounded-3xl overflow-hidden p-8 md:p-10 relative">
           
           <div className="mb-6 flex justify-center">
-            <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="h-16 md:h-20 w-auto object-contain mix-blend-multiply" />
+            <div className="bg-white rounded-full h-16 w-16 md:h-20 md:w-20 flex items-center justify-center shadow-lg overflow-hidden border-2 border-white">
+              <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="w-full h-full object-cover scale-[1.35]" />
+            </div>
           </div>
 
           {!success ? (
