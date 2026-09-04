@@ -336,12 +336,12 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
           </div>
           <div className="flex gap-3">
             {/* Controles de interfaz */}
-            <div className="flex items-center gap-2 bg-surface-variant/40 dark:bg-black/60 px-3 py-1.5 rounded-lg border border-outline-variant/30">
-              <span className="text-sm font-bold text-on-surface-variant dark:text-white/80">Pago:</span>
+            <div className="flex items-center gap-2 bg-[#fcf8ef] dark:bg-[#2a2415] px-3 py-1.5 rounded-lg border border-[#e3b54a]/30">
+              <span className="text-sm font-bold text-[#8c6d23] dark:text-[#e3b54a]/80">Pago:</span>
               <select 
                 value={condicionPago} 
                 onChange={(e) => setCondicionPago(e.target.value)}
-                className="bg-surface border border-outline-variant/30 focus:border-primary dark:bg-[#222] dark:border-white/10 dark:focus:border-[#e3b54a] rounded px-2 py-0.5 text-sm cursor-pointer font-bold text-primary dark:text-[#e3b54a] outline-none"
+                className="bg-transparent border-none focus:ring-0 text-sm cursor-pointer font-bold text-[#a6822c] dark:text-[#e3b54a] outline-none"
               >
                 <option value="CONTADO">CONTADO</option>
                 <option value="CRÉDITO">CRÉDITO</option>
@@ -349,21 +349,21 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
             </div>
 
             {/* Grupo de botones Imprimir/Exportar */}
-            <div className="flex bg-tertiary/10 dark:bg-[#e3b54a]/10 rounded-xl border border-tertiary/20 dark:border-[#e3b54a]/20 p-0.5 overflow-hidden">
+            <div className="flex bg-tertiary dark:bg-[#e3b54a] rounded-xl border border-tertiary/20 dark:border-[#e3b54a]/20 p-0.5 overflow-hidden shadow-sm">
               <button 
                 onClick={handlePrint}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-1.5 hover:bg-tertiary text-tertiary hover:text-white dark:text-[#e3b54a] dark:hover:bg-[#e3b54a] dark:hover:text-black font-bold rounded-lg transition-colors text-sm disabled:opacity-50"
+                className="flex items-center gap-2 px-3 py-1.5 bg-tertiary hover:bg-tertiary/90 text-white dark:bg-[#e3b54a] dark:hover:bg-[#d4a845] dark:text-black font-bold rounded-lg transition-colors text-sm disabled:opacity-50"
                 title="Imprimir Factura"
               >
                 <Printer className="w-4 h-4" />
                 <span className="hidden md:inline">Imprimir</span>
               </button>
-              <div className="w-[1px] bg-tertiary/20 dark:bg-[#e3b54a]/20 mx-0.5 my-1" />
+              <div className="w-[1px] bg-white/20 dark:bg-black/10 mx-0.5 my-1" />
               <button 
                 onClick={handleExportPDF}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-1.5 hover:bg-tertiary text-tertiary hover:text-white dark:text-[#e3b54a] dark:hover:bg-[#e3b54a] dark:hover:text-black font-bold rounded-lg transition-colors text-sm disabled:opacity-50"
+                className="flex items-center gap-2 px-3 py-1.5 bg-tertiary hover:bg-tertiary/90 text-white dark:bg-[#e3b54a] dark:hover:bg-[#d4a845] dark:text-black font-bold rounded-lg transition-colors text-sm disabled:opacity-50"
                 title="Descargar PDF"
               >
                 {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
@@ -441,13 +441,13 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
               {/* Factura Info */}
               <div className="w-[45%] text-right">
                 <h1 className="text-lg font-black text-[#e3b54a] mb-1 uppercase tracking-wide">Factura</h1>
-                <div className="flex items-center justify-end font-bold text-base mb-1 gap-2">
-                  <span>No.</span>
+                <div className="flex items-center justify-end font-bold text-base mb-1">
+                  <span className="mr-1">No.</span>
                   <input 
                     type="text" 
                     value={numeroFiscalLocal} 
                     onChange={(e) => setNumeroFiscalLocal(e.target.value)} 
-                    className="w-48 text-right bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[#e3b54a] transition-colors"
+                    className="w-[185px] text-left bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[#e3b54a] transition-colors"
                   />
                 </div>
                 <p className="text-[10px] text-gray-600 mb-2">CAI: <span className="font-mono">{sarConfig?.cai || 'POR DEFINIR'}</span></p>
