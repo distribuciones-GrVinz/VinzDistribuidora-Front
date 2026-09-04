@@ -178,18 +178,12 @@ export function OrderHistory() {
                     </p>
                     <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-bold ${getStatusColor(pedido.estado)} dark:opacity-90`}>
                       {getStatusIcon(pedido.estado)}
-                      <span className="hidden sm:inline">{pedido.estado.replace('_', ' ')}</span>
+                      <span>{pedido.estado.replace('_', ' ')}</span>
                     </div>
                   </div>
-                  <p className="text-on-surface dark:text-white font-medium capitalize text-lg">
-                    {safeDate(pedido.created_at)}
+                  <p className="text-on-surface dark:text-white font-medium capitalize text-sm mt-1">
+                    {new Date(pedido.created_at).toLocaleDateString('es-HN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
-                  
-                  {pedido.fecha_entrega_esperada_inicio && pedido.fecha_entrega_esperada_fin && (
-                    <p className="text-xs font-medium text-tertiary dark:text-[#e3b54a] mt-2">
-                      Entrega: {new Date(pedido.fecha_entrega_esperada_inicio + "T12:00:00").toLocaleDateString('es-HN', { day: 'numeric', month: 'short' })} al {new Date(pedido.fecha_entrega_esperada_fin + "T12:00:00").toLocaleDateString('es-HN', { day: 'numeric', month: 'short' })}
-                    </p>
-                  )}
                 </div>
                 
                 <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 border-outline-variant/20 dark:border-white/5 pt-4 md:pt-0">
@@ -199,15 +193,17 @@ export function OrderHistory() {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    <button
-                      onClick={(e) => handleReorder(pedido, e)}
-                      disabled={reorderingId === pedido.id}
-                      className="p-2 sm:px-4 sm:py-2 bg-primary/10 text-primary dark:bg-[#e3b54a]/10 dark:text-[#e3b54a] rounded-xl hover:bg-primary hover:text-white dark:hover:bg-[#e3b54a] dark:hover:text-black transition-all flex items-center gap-2 font-bold text-xs disabled:opacity-50"
-                      title="Volver a pedir"
-                    >
-                      <RotateCcw className={`w-4 h-4 ${reorderingId === pedido.id ? 'animate-spin' : ''}`} />
-                      <span className="hidden sm:inline">Repetir</span>
-                    </button>
+                    {pedido.estado === 'Entregado' && (
+                      <button
+                        onClick={(e) => handleReorder(pedido, e)}
+                        disabled={reorderingId === pedido.id}
+                        className="p-2 sm:px-4 sm:py-2 bg-primary/10 text-primary dark:bg-[#e3b54a]/10 dark:text-[#e3b54a] rounded-xl hover:bg-primary hover:text-white dark:hover:bg-[#e3b54a] dark:hover:text-black transition-all flex items-center gap-2 font-bold text-xs disabled:opacity-50"
+                        title="Volver a pedir"
+                      >
+                        <RotateCcw className={`w-4 h-4 ${reorderingId === pedido.id ? 'animate-spin' : ''}`} />
+                        <span className="hidden sm:inline">Repetir</span>
+                      </button>
+                    )}
                     <div className="w-8 h-8 rounded-full flex items-center justify-center bg-surface-variant/30 dark:bg-white/5 text-on-surface-variant dark:text-white/60">
                       {expandedOrderId === pedido.id ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                     </div>
@@ -218,6 +214,19 @@ export function OrderHistory() {
               {/* Detalles del Pedido (Accordion) */}
               {expandedOrderId === pedido.id && (
                 <div className="p-5 border-t border-outline-variant/20 dark:border-white/5 bg-surface-variant/10 dark:bg-black/20 animate-in slide-in-from-top-2 duration-200">
+                  <div className="flex flex-col gap-3 mb-6 bg-white/50 dark:bg-black/20 p-4 rounded-xl border border-outline-variant/20 dark:border-white/5">
+                    <p className="text-sm text-on-surface dark:text-white">
+                      <span className="font-bold text-on-surface-variant dark:text-white/60 uppercase text-xs tracking-wider mr-2">Realizado:</span> 
+                      {safeDate(pedido.created_at)}
+                    </p>
+                    {pedido.fecha_entrega_esperada_inicio && pedido.fecha_entrega_esperada_fin && (
+                      <p className="text-sm text-on-surface dark:text-white">
+                        <span className="font-bold text-tertiary dark:text-[#e3b54a] uppercase text-xs tracking-wider mr-2">Entrega Esperada:</span> 
+                        {new Date(pedido.fecha_entrega_esperada_inicio + "T12:00:00").toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} - {new Date(pedido.fecha_entrega_esperada_fin + "T12:00:00").toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    )}
+                  </div>
+                  
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                     <h4 className="text-xs font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-widest">Desglose de Artículos</h4>
                   </div>
