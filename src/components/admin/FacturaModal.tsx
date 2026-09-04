@@ -106,8 +106,8 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
       document.body.style.overflow = 'hidden';
       if (pedido) {
         setClienteNombre(pedido.cliente_nombre || '');
-        setClienteDireccion('');
-        setClienteRTN('');
+        setClienteDireccion(pedido.cliente_direccion || '');
+        setClienteRTN(pedido.cliente_rtn || '');
         setCondicionPago('CONTADO'); // Default
         
         const now = new Date();
@@ -125,7 +125,11 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
               dir = dir.replace(/\uFFFD/g, 'á').replace(/Morazn/g, 'Morazán').replace(/Moraz.n/g, 'Morazán');
               setEmpresaDireccion(dir);
               setEmpresaTelefono(config.telefono || '');
-              setEmpresaEmail(config.correo || '');
+              
+              let correo = config.correo || 'grupovinzhn@gmail.com';
+              if (correo === 'grupovinzh@gmail.com') correo = 'grupovinzhn@gmail.com';
+              setEmpresaEmail(correo);
+              
               setEmpresaRTN(config.rtn || '');
               
               const numFiscal = pedido?.factura_fiscal || `${config.prefijo_factura}${config.correlativo_actual.toString().padStart(8, '0')}`;
@@ -215,8 +219,8 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
           ${embeddedFonts}
           <style>
             @media print {
-              @page { margin: 0; size: letter portrait; }
-              body { margin: 0.5cm; background: white !important; font-family: 'Manrope', sans-serif; }
+              @page { margin: 0.5cm; size: letter portrait; }
+              body { margin: 0; padding: 0; background: white !important; font-family: 'Manrope', sans-serif; }
               * {
                 -webkit-print-color-adjust: exact !important;
                 color-adjust: exact !important;
@@ -241,7 +245,6 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                 margin: 0 !important;
                 color: black !important;
                 font-family: 'Manrope', sans-serif;
-                width: 100%;
                 resize: none;
               }
               input::placeholder, textarea::placeholder { color: transparent !important; }
@@ -264,12 +267,12 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
           </style>
         </head>
         <body class="bg-white text-black p-0 m-0 relative">
-          <div style="padding: 1cm 1.5cm 1cm 1.5cm; position: relative; z-index: 1;">
+          <div style="padding: 0.5cm 1.5cm 1cm 1.5cm; position: relative; z-index: 1;">
             <div class="copy-label">ORIGINAL: CLIENTE</div>
             ${printContent.outerHTML}
           </div>
           <div class="page-break"></div>
-          <div style="padding: 1cm 1.5cm 1cm 1.5cm; position: relative; z-index: 1;">
+          <div style="padding: 0.5cm 1.5cm 1cm 1.5cm; position: relative; z-index: 1;">
             <div class="copy-label">COPIA: EMISOR</div>
             ${printContent.outerHTML}
           </div>
@@ -372,7 +375,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
       const pdfW = pdf.internal.pageSize.getWidth();
       const pdfH = pdf.internal.pageSize.getHeight();
-      const margin = 10;
+      const margin = 5; // Reducido para usar mejor el espacio
       const usableW = pdfW - margin * 2;
       const imgH = (canvas.height * usableW) / canvas.width;
       const finalH = imgH > pdfH - margin * 2 ? pdfH - margin * 2 : imgH;
@@ -471,11 +474,11 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
           ref={scrollRef}
           className="flex-1 overflow-auto p-4 md:p-6 bg-gray-100 dark:bg-black/20 flex justify-center items-start relative scroll-smooth"
         >
-          <div id="factura-content" className="bg-white text-black p-6 w-[21.59cm] min-w-[21.59cm] shrink-0 shadow-lg rounded-xl flex flex-col relative mx-auto">
+          <div id="factura-content" className="bg-white text-black p-4 md:p-5 w-[21.59cm] min-w-[21.59cm] shrink-0 shadow-lg rounded-xl flex flex-col relative mx-auto">
             
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex justify-between items-start mb-3">
               {/* Logo y Empresa */}
-              <div className="w-[55%] pr-4 -mt-2">
+              <div className="w-[55%] pr-4 -mt-5">
                 <div className="mb-1">
                   <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="h-20 object-contain" />
                 </div>
@@ -527,14 +530,16 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
               {/* Factura Info */}
               <div className="w-[45%] text-right">
                 <h1 className="text-lg font-black text-[#e3b54a] mb-1 uppercase tracking-wide">Factura</h1>
-                <div className="flex items-center justify-end font-bold text-base mb-1">
-                  <span className="mr-1">No.</span>
-                  <input 
-                    type="text" 
-                    value={numeroFiscalLocal} 
-                    onChange={(e) => setNumeroFiscalLocal(e.target.value)} 
-                    className="w-[185px] text-left bg-transparent border-b border-transparent hover:border-gray-300 focus:border-[#e3b54a] transition-colors"
-                  />
+                <div className="flex items-center justify-end font-bold text-base mb-1 text-right">
+                  <div className="flex items-center border-b border-transparent hover:border-gray-300 focus-within:border-[#e3b54a] transition-colors">
+                    <span className="mr-1">No.</span>
+                    <input 
+                      type="text" 
+                      value={numeroFiscalLocal} 
+                      onChange={(e) => setNumeroFiscalLocal(e.target.value)} 
+                      className="w-[170px] text-right bg-transparent outline-none focus:outline-none"
+                    />
+                  </div>
                 </div>
                 <p className="text-[10px] text-gray-600 mb-2">CAI: <span className="font-mono">{sarConfig?.cai || 'POR DEFINIR'}</span></p>
                 
@@ -562,7 +567,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
             </div>
 
             {/* Datos del Cliente */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3">
               <h3 className="text-[10px] font-bold text-[#e3b54a] uppercase tracking-wider mb-2">Facturar A:</h3>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="flex flex-col">
@@ -599,28 +604,27 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
             </div>
 
             {/* Tabla de Detalles */}
-            <div className="rounded-lg overflow-hidden border border-gray-200 mb-4 flex-1">
+            <div className="rounded-lg overflow-hidden border border-gray-200 mb-3 flex-1">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-[#e3b54a] text-black">
-                    <th className="px-3 py-2 text-center font-bold w-12">CANT.</th>
-                    <th className="px-3 py-2 text-left font-bold">DESCRIPCIÓN</th>
-                    <th className="px-3 py-2 text-right font-bold w-24">PRECIO L.</th>
-                    <th className="px-3 py-2 text-right font-bold w-20">DESC. L.</th>
-                    <th className="px-3 py-2 text-right font-bold w-28">TOTAL L.</th>
+                    <th className="px-2 py-1.5 text-center font-bold w-10">CANT.</th>
+                    <th className="px-2 py-1.5 text-left font-bold">DESCRIPCIÓN</th>
+                    <th className="px-2 py-1.5 text-right font-bold w-20">PRECIO L.</th>
+                    <th className="px-2 py-1.5 text-right font-bold w-20">DESC. L.</th>
+                    <th className="px-2 py-1.5 text-right font-bold w-24">TOTAL L.</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {pedido.detalles?.map((det: any, idx: number) => {
-                    const cant = Math.round(Number(det.cantidad));
-                    const unitPrice = Number(det.subtotal) / cant;
+                <tbody className="divide-y divide-gray-200">
+                  {pedido.detalles?.map((det: any, index: number) => {
+                    const unitPrice = Number(det.subtotal) / Number(det.cantidad);
                     return (
-                      <tr key={idx} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 text-center align-top">{cant}</td>
-                        <td className="px-3 py-2 align-top font-medium">{det.producto_nombre}</td>
-                        <td className="px-3 py-2 text-right align-top text-gray-600">{unitPrice.toFixed(2)}</td>
-                        <td className="px-3 py-2 text-right align-top text-gray-600">0.00</td>
-                        <td className="px-3 py-2 text-right font-bold align-top">{Number(det.subtotal).toFixed(2)}</td>
+                      <tr key={index} className="bg-white">
+                        <td className="px-2 py-1.5 text-center align-top">{Number(det.cantidad)}</td>
+                        <td className="px-2 py-1.5 align-top font-medium">{det.producto_nombre}</td>
+                        <td className="px-2 py-1.5 text-right align-top text-gray-600">{unitPrice.toFixed(2)}</td>
+                        <td className="px-2 py-1.5 text-right align-top text-gray-600">0.00</td>
+                        <td className="px-2 py-1.5 text-right font-bold align-top">{Number(det.subtotal).toFixed(2)}</td>
                       </tr>
                     );
                   })}
@@ -628,54 +632,34 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
               </table>
             </div>
 
-            {/* Bloque de Totales primero */}
-            <div className="w-full bg-gray-50 rounded-lg border border-gray-200 p-3 mt-auto">
-              <div className="flex justify-end">
-                <div className="w-full md:w-64 space-y-1.5 text-[11px]">
-                  <div className="flex justify-between text-gray-600">
-                    <span>Importe Exonerado</span>
-                    <span>L. 0.00</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Importe Exento</span>
-                    <span>L. {importeExento.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Importe Gravado 15%</span>
-                    <span>L. {importeGravado15.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Importe Gravado 18%</span>
-                    <span>L. 0.00</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>15% I.S.V.</span>
-                    <span>L. {isv15.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>18% I.S.V.</span>
-                    <span>L. 0.00</span>
-                  </div>
-                  <div className="pt-2 border-t-2 border-gray-300 flex justify-between items-center">
-                    <span className="font-black text-sm">TOTAL A PAGAR</span>
-                    <span className="font-black text-base text-[#e3b54a]">L. {granTotal.toFixed(2)}</span>
-                  </div>
+            {/* Footer de Factura: Totales + Información Legal agrupados */}
+            <div className="w-full mt-auto flex gap-3">
+              {/* Bloque Izquierdo: Son + Info SAR */}
+              <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3 flex flex-col">
+                <div className="flex items-start gap-2 text-[10px] mb-2">
+                  <span className="font-bold pt-1 whitespace-nowrap">Son:</span>
+                  <span className="flex-1 font-medium italic uppercase border-b border-gray-400 pb-0.5">{numeroALetras(granTotal)}</span>
                 </div>
-              </div>
-            </div>
-
-            {/* Son + Info SAR debajo del total */}
-            <div className="w-full text-[10px] text-gray-600 mt-3">
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-3">
-                <div className="flex items-start gap-2 text-[11px]">
-                  <span className="font-bold whitespace-nowrap pt-1">Son:</span>
-                  <span className="flex-1 font-medium italic uppercase border-b border-gray-400 pb-1">{numeroALetras(granTotal)}</span>
-                </div>
-
-                <div className="pt-2 text-[9px] space-y-1">
-                  <p><span className="font-bold">Rango Autorizado:</span> {getRango(sarConfig?.rango_inicial || 1)} al {getRango(sarConfig?.rango_final || 1)}</p>
+                <div className="pt-1 text-[9px] space-y-1 mt-3 text-gray-600">
+                  <p><span className="font-bold">Rango Autorizado:</span> {getRango(sarConfig?.rango_inicial || 1)} al {getRango(sarConfig?.rango_final || 1000)}</p>
                   <p><span className="font-bold">Fecha Límite de Emisión:</span> {limiteEmision}</p>
                   <p className="font-bold text-[#e3b54a] text-[10px] mt-2 uppercase tracking-wide">LA FACTURA ES BENEFICIO DE TODOS: ¡EXÍJALA!</p>
+                </div>
+              </div>
+
+              {/* Bloque Derecho: Totales */}
+              <div className="w-[45%] md:w-64 bg-gray-50 rounded-lg border border-gray-200 p-2.5">
+                <div className="space-y-1.5 text-[11px]">
+                  <div className="flex justify-between text-gray-600"><span>Importe Exonerado</span><span>L. 0.00</span></div>
+                  <div className="flex justify-between text-gray-600"><span>Importe Exento</span><span>L. {importeExento.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-gray-600"><span>Importe Gravado 15%</span><span>L. {importeGravado15.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-gray-600"><span>Importe Gravado 18%</span><span>L. 0.00</span></div>
+                  <div className="flex justify-between text-gray-600"><span>15% I.S.V.</span><span>L. {isv15.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-gray-600"><span>18% I.S.V.</span><span>L. 0.00</span></div>
+                  <div className="pt-2 border-t border-gray-300 flex justify-between items-center mt-1">
+                    <span className="font-black text-xs">TOTAL A PAGAR</span>
+                    <span className="font-black text-sm text-[#e3b54a]">L. {granTotal.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
             </div>
