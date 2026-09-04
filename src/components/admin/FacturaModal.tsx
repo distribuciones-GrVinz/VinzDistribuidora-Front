@@ -537,7 +537,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                       type="text" 
                       value={numeroFiscalLocal} 
                       onChange={(e) => setNumeroFiscalLocal(e.target.value)} 
-                      className="w-[170px] text-right bg-transparent outline-none focus:outline-none"
+                      className="w-[185px] text-right bg-transparent outline-none focus:outline-none"
                     />
                   </div>
                 </div>
