@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Printer, CheckCircle, Download, Loader2 } from 'lucide-react';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { ScrollProgressIndicator } from '../ui/ScrollProgressIndicator';
