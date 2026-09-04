@@ -12,9 +12,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Vinz Distribuidora',
-        short_name: 'Vinz',
-        description: 'Vinz Distribuidora - Sistema de Pedidos y Administración',
+        name: 'Sweet & Tasty by VINZ',
+        short_name: 'Sweet & Tasty',
+        description: 'Sweet & Tasty by VINZ - Sistema de Pedidos y Administración',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
