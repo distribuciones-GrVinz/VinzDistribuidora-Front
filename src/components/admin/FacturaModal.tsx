@@ -136,7 +136,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
   // para que html2canvas y el iframe puedan renderizar la tipografía correctamente.
   const embedGoogleFonts = async (): Promise<string> => {
     try {
-      const FONT_URL = 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap';
+      const FONT_URL = 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap';
       const cssResp = await fetch(FONT_URL, { headers: { 'Accept': 'text/css' } });
       if (!cssResp.ok) return '';
       let css = await cssResp.text();
@@ -263,9 +263,20 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
 
     // Esperar a que las fuentes carguen en el iframe antes de imprimir
     const doPrint = () => {
+      // Cambiar temporalmente el título para el nombre de archivo en "Guardar como PDF"
+      const originalTitle = document.title;
+      const dateObj = new Date(pedido.created_at);
+      const fechaStr = `${dateObj.getDate().toString().padStart(2, '0')}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getFullYear()}`;
+      document.title = `Factura-${pedido.id.split('-')[0].toUpperCase()}-${fechaStr}`;
+
       iframe.contentWindow?.focus();
       iframe.contentWindow?.print();
-      setTimeout(() => { document.body.removeChild(iframe); }, 1000);
+
+      // Restaurar el título y limpiar el DOM después de que el diálogo se cierre/procese
+      setTimeout(() => { 
+        document.title = originalTitle;
+        document.body.removeChild(iframe); 
+      }, 1000);
     };
 
     try {
