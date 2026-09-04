@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Printer, CheckCircle, Download, Loader2 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import autoTable from 'jspdf-autotable';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { ScrollProgressIndicator } from '../ui/ScrollProgressIndicator';
 import { getSARConfig } from '../../services/adminService';
@@ -242,52 +242,146 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
   };
 
   const handleExportPDF = async () => {
-    const printContent = document.getElementById('factura-content');
-    if (!printContent) return;
-
+    if (!pedido) return;
     try {
       setIsExporting(true);
-      
-      // Update editable elements to their values for capturing
-      const inputs = printContent.querySelectorAll('input[type="text"]');
-      inputs.forEach(input => {
-        (input as HTMLInputElement).setAttribute('value', (input as HTMLInputElement).value);
+
+      // --- Calcular totales igual que en el render ---
+      let exento = 0;
+      let gravado15 = 0;
+      pedido.detalles?.forEach((det: any) => {
+        const sub = Number(det.subtotal);
+        if (det.producto?.exento_isv) { exento += sub; } else { gravado15 += sub; }
+      });
+      const isv = gravado15 * 0.15;
+      const total = exento + gravado15 + isv;
+
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+      const pageW = doc.internal.pageSize.getWidth();
+      const M = 14; // margen izquierdo/derecho
+
+      // --- Logo ---
+      try {
+        const resp = await fetch('/sweet_logo.jpg');
+        const blob = await resp.blob();
+        const b64 = await new Promise<string>((res) => {
+          const r = new FileReader();
+          r.readAsDataURL(blob);
+          r.onloadend = () => res(r.result as string);
+        });
+        doc.addImage(b64, 'JPEG', M, 10, 22, 22);
+      } catch { /* sin logo */ }
+
+      // --- Datos empresa ---
+      doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 30);
+      doc.text(empresaNombre || 'GRUPO VINZ, S. DE R.L.', M + 26, 18);
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(90, 90, 90);
+      const dirLines = doc.splitTextToSize(empresaDireccion || '', pageW / 2 - M - 26);
+      doc.text(dirLines, M + 26, 24);
+      doc.text(`Tel: ${empresaTelefono}   E-mail: ${empresaEmail}`, M + 26, 24 + dirLines.length * 4);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`R.T.N. ${empresaRTN}`, M + 26, 24 + dirLines.length * 4 + 4);
+
+      // --- Bloque derecho: FACTURA ---
+      const rightX = pageW - M;
+      doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(200, 159, 83);
+      doc.text('FACTURA', rightX, 15, { align: 'right' });
+      doc.setFontSize(10); doc.setTextColor(30, 30, 30);
+      doc.text(`No. ${numeroFiscalLocal}`, rightX, 22, { align: 'right' });
+      doc.setFontSize(7); doc.setTextColor(90, 90, 90);
+      doc.text(`CAI: ${sarConfig?.cai || 'POR DEFINIR'}`, rightX, 27, { align: 'right' });
+
+      // Fecha y condición en tabla pequeña
+      const dateObj = new Date(pedido.created_at);
+      const fechaStr = `${dateObj.getDate().toString().padStart(2,'0')} / ${(dateObj.getMonth()+1).toString().padStart(2,'0')} / ${dateObj.getFullYear()}`;
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(50, 50, 50);
+      doc.text(`Fecha: ${fechaStr}`, rightX - 50, 33);
+      doc.text(`Pago: ${condicionPago}`, rightX, 33, { align: 'right' });
+
+      // --- Separador ---
+      const sepY = 38;
+      doc.setDrawColor(200, 159, 83); doc.setLineWidth(0.4);
+      doc.line(M, sepY, pageW - M, sepY);
+
+      // --- FACTURAR A ---
+      doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(200, 159, 83);
+      doc.text('FACTURAR A:', M, sepY + 6);
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 30);
+      doc.text(clienteNombre || 'Cliente', M, sepY + 12);
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(90, 90, 90);
+      doc.text(`R.T.N.: ${clienteRTN || '-'}`, pageW / 2, sepY + 12);
+      doc.text(`Dir.: ${clienteDireccion || '-'}`, M, sepY + 17);
+
+      // --- Tabla de productos ---
+      const tableStartY = sepY + 24;
+      const tableRows = (pedido.detalles || []).map((det: any) => {
+        const cant = Math.round(Number(det.cantidad));
+        const unitP = Number(det.subtotal) / cant;
+        return [cant, det.producto_nombre, `L ${unitP.toFixed(2)}`, 'L 0.00', `L ${Number(det.subtotal).toFixed(2)}`];
       });
 
-      // Temporarily hide elements not meant for print
-      const hiddenElements = printContent.querySelectorAll('.print-hidden');
-      hiddenElements.forEach(el => (el as HTMLElement).style.display = 'none');
-
-      // Strip border radius/shadow temporarily
-      const originalStyle = printContent.style.cssText;
-      printContent.style.boxShadow = 'none';
-      printContent.style.borderRadius = '0';
-
-      const canvas = await html2canvas(printContent, {
-        scale: 2,
-        useCORS: true,
-        logging: false
+      autoTable(doc, {
+        startY: tableStartY,
+        head: [['CANT.', 'DESCRIPCIÓN', 'PRECIO L.', 'DESC. L.', 'TOTAL L.']],
+        body: tableRows,
+        theme: 'striped',
+        headStyles: { fillColor: [200, 159, 83], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+        bodyStyles: { fontSize: 8, textColor: [40, 40, 40] },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 18 },
+          2: { halign: 'right', cellWidth: 28 },
+          3: { halign: 'right', cellWidth: 22 },
+          4: { halign: 'right', cellWidth: 26 },
+        },
+        margin: { left: M, right: M },
       });
 
-      // Restore elements
-      hiddenElements.forEach(el => (el as HTMLElement).style.display = '');
-      printContent.style.cssText = originalStyle;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const afterTable = (doc as any).lastAutoTable.finalY + 6;
 
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'letter'
+      // --- Son (letras) ---
+      doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(30,30,30);
+      doc.text('Son:', M, afterTable);
+      doc.setFont('helvetica', 'italic'); doc.setTextColor(60, 60, 60);
+      const sonText = doc.splitTextToSize(numeroALetras(total), pageW - M * 2 - 16);
+      doc.text(sonText, M + 9, afterTable);
+      doc.setDrawColor(180, 180, 180); doc.setLineWidth(0.3);
+      doc.line(M + 9, afterTable + 2, pageW - M, afterTable + 2);
+
+      // --- Rango SAR ---
+      const sarY = afterTable + 8;
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(80,80,80);
+      doc.text(`Rango Autorizado: ${getRango(sarConfig?.rango_inicial || 1)} al ${getRango(sarConfig?.rango_final || 1)}`, M, sarY);
+      doc.text(`Fecha Límite de Emisión: ${limiteEmision}`, M, sarY + 4);
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(200, 159, 83);
+      doc.text('LA FACTURA ES BENEFICIO DE TODOS: ¡EXÍJALA!', M, sarY + 9);
+
+      // --- Totales (esquina derecha) ---
+      const totX = pageW - M;
+      const lineH = 5.5;
+      const totStartY = afterTable + 6;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(80,80,80);
+      const totRows: [string, string][] = [
+        ['Importe Exonerado', 'L. 0.00'],
+        ['Importe Exento', `L. ${exento.toFixed(2)}`],
+        ['Importe Gravado 15%', `L. ${gravado15.toFixed(2)}`],
+        ['Importe Gravado 18%', 'L. 0.00'],
+        ['15% I.S.V.', `L. ${isv.toFixed(2)}`],
+        ['18% I.S.V.', 'L. 0.00'],
+      ];
+      totRows.forEach(([label, val], i) => {
+        doc.text(label, totX - 60, totStartY + i * lineH);
+        doc.text(val, totX, totStartY + i * lineH, { align: 'right' });
       });
+      const totalY = totStartY + totRows.length * lineH + 2;
+      doc.setDrawColor(80,80,80); doc.setLineWidth(0.5);
+      doc.line(totX - 62, totalY - 1, totX, totalY - 1);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(30,30,30);
+      doc.text('TOTAL A PAGAR', totX - 60, totalY + 4);
+      doc.setTextColor(200, 159, 83);
+      doc.text(`L. ${total.toFixed(2)}`, totX, totalY + 4, { align: 'right' });
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      // Calculate margins to center the invoice vertically/horizontally if needed, 
-      // but usually we just put it at 0, 0 or with a small margin.
-      const margin = 12.7; // 0.5 inch in mm
-      pdf.addImage(imgData, 'JPEG', margin, margin, pdfWidth - (margin*2), (pdfHeight * (pdfWidth - (margin*2))) / pdfWidth);
-      pdf.save(`Factura-${pedido.id.split('-')[0].toUpperCase()}.pdf`);
+      doc.save(`Factura-${pedido.id.split('-')[0].toUpperCase()}.pdf`);
     } catch (error) {
       console.error('Error al exportar PDF:', error);
     } finally {
