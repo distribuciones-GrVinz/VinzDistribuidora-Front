@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit2, Search, Trash2, FileText } from 'lucide-react';
 import { getProductos, getCategorias, createProducto, updateProducto, deleteProducto } from '../../services/adminService';
 import { QuoteModal } from '../../components/admin/QuoteModal';
+import { AdminProductCardSkeleton } from '../../components/ui/Skeleton';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 
 interface Producto {
@@ -245,8 +246,10 @@ export function ProductManager() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-tertiary dark:border-[#e3b54a]"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <AdminProductCardSkeleton key={i} />
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">

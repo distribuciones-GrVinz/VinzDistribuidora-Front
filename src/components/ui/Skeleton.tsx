@@ -72,3 +72,41 @@ export function TableSkeleton({ columns = 5, rows = 5 }: { columns?: number, row
     </div>
   );
 }
+
+/**
+ * Skeleton para tarjetas de productos (Administración)
+ */
+export function AdminProductCardSkeleton() {
+  return (
+    <div className="bg-white dark:bg-[#0f0f0f] border border-outline-variant/80 dark:border-white/5 rounded-2xl overflow-hidden flex flex-col h-full shadow-md">
+      {/* Botón flotante de estado */}
+      <div className="absolute top-4 left-4 z-40">
+        <Skeleton className="w-10 h-5 rounded-full" />
+      </div>
+
+      {/* Imagen (Aspect Ratio 4/5) */}
+      <div className="aspect-[4/5] bg-[#f5f1e6] dark:bg-[#1a1a1a]"></div>
+      
+      {/* Contenido */}
+      <div className="p-6 flex-1 flex flex-col">
+        {/* Categoría y Título */}
+        <Skeleton className="w-20 h-3 rounded-full mb-2" />
+        <Skeleton className="w-3/4 h-6 mb-4" />
+        
+        <div className="flex items-center gap-2 mb-2">
+          <Skeleton className="w-12 h-4 rounded-md" />
+          <Skeleton className="w-24 h-4 rounded-md" />
+        </div>
+        
+        {/* Precio (Abajo) */}
+        <div className="mt-auto pt-6 border-t border-outline-variant/30 dark:border-white/10 flex justify-between items-center">
+          <div>
+            <Skeleton className="w-12 h-3 mb-1" />
+            <Skeleton className="w-20 h-6" />
+          </div>
+          <Skeleton className="w-16 h-8 rounded-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
