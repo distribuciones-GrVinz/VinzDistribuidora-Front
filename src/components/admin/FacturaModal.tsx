@@ -91,6 +91,15 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
   
   // Editable Invoice Number
   const [numeroFiscalLocal, setNumeroFiscalLocal] = useState('');
+  
+  // Editable Invoice Date
+  const [facturaFecha, setFacturaFecha] = useState(() => {
+    // Current date in local timezone YYYY-MM-DD
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const local = new Date(now.getTime() - (offset*60*1000));
+    return local.toISOString().split('T')[0];
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -100,6 +109,11 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
         setClienteDireccion('');
         setClienteRTN('');
         setCondicionPago('CONTADO'); // Default
+        
+        const now = new Date();
+        const offset = now.getTimezoneOffset();
+        const local = new Date(now.getTime() - (offset*60*1000));
+        setFacturaFecha(local.toISOString().split('T')[0]);
         
         const loadSAR = async () => {
           try {
@@ -166,7 +180,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
     if (!printContent) return;
 
     // Actualizar campos editables
-    printContent.querySelectorAll('input[type="text"], textarea').forEach(el => {
+    printContent.querySelectorAll('input[type="text"], input[type="date"], textarea').forEach(el => {
       if (el instanceof HTMLInputElement) el.setAttribute('value', el.value);
       if (el instanceof HTMLTextAreaElement) el.textContent = el.value;
     });
@@ -220,7 +234,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                 margin-bottom: 10px;
                 letter-spacing: 1px;
               }
-              input[type="text"], textarea { 
+              input[type="text"], input[type="date"], textarea { 
                 border: none !important; 
                 background: transparent !important;
                 padding: 0 !important;
@@ -230,6 +244,8 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                 width: 100%;
                 resize: none;
               }
+              input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; }
+              input[type="date"]::-webkit-inner-spin-button { display: none !important; }
               textarea { overflow: hidden; }
               input:focus, textarea:focus { outline: none !important; }
               .print-hidden { display: none !important; }
@@ -265,9 +281,9 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
     const doPrint = () => {
       // Cambiar temporalmente el título para el nombre de archivo en "Guardar como PDF"
       const originalTitle = document.title;
-      const dateObj = new Date(pedido.created_at);
-      const fechaStr = `${dateObj.getDate().toString().padStart(2, '0')}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getFullYear()}`;
-      document.title = `Factura-${pedido.id.split('-')[0].toUpperCase()}-${fechaStr}`;
+      // Usar facturaFecha para el nombre del archivo
+      const [year, month, day] = facturaFecha.split('-');
+      document.title = `Factura-${pedido.id.split('-')[0].toUpperCase()}-${day}-${month}-${year}`;
 
       iframe.contentWindow?.focus();
       iframe.contentWindow?.print();
@@ -299,7 +315,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
       const embeddedFonts = await embedGoogleFonts();
 
       // --- Actualizar campos editables antes de clonar ---
-      source.querySelectorAll('input[type="text"], textarea').forEach(el => {
+      source.querySelectorAll('input[type="text"], input[type="date"], textarea').forEach(el => {
         if (el instanceof HTMLInputElement) el.setAttribute('value', el.value);
         if (el instanceof HTMLTextAreaElement) el.textContent = el.value;
       });
@@ -364,11 +380,6 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
   };
 
   if (!isOpen || !pedido) return null;
-
-  const dateObj = new Date(pedido.created_at);
-  const dia = dateObj.getDate().toString().padStart(2, '0');
-  const mes = (dateObj.getMonth() + 1).toString().padStart(2, '0');
-  const ano = dateObj.getFullYear().toString();
 
   // Financial calculations
   let importeExento = 0;
@@ -521,12 +532,15 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                 <p className="text-[10px] text-gray-600 mb-2">CAI: <span className="font-mono">{sarConfig?.cai || 'POR DEFINIR'}</span></p>
                 
                 <div className="flex justify-end gap-2">
-                  <div className="inline-block border border-gray-300 rounded-md overflow-hidden">
+                  <div className="inline-block border border-gray-300 rounded-md overflow-hidden bg-white">
                     <div className="bg-gray-100 px-3 py-1 text-[10px] font-bold text-center border-b border-gray-300">FECHA</div>
-                    <div className="flex text-center divide-x divide-gray-300 text-xs">
-                      <div className="px-2 py-1"><div className="font-bold">{dia}</div></div>
-                      <div className="px-2 py-1"><div className="font-bold">{mes}</div></div>
-                      <div className="px-2 py-1"><div className="font-bold">{ano}</div></div>
+                    <div className="px-2 py-1 flex items-center justify-center">
+                      <input 
+                        type="date"
+                        value={facturaFecha}
+                        onChange={(e) => setFacturaFecha(e.target.value)}
+                        className="font-bold text-xs text-center border-none bg-transparent hover:bg-gray-50 focus:ring-0 p-0 m-0 outline-none w-[100px] print:w-auto cursor-pointer"
+                      />
                     </div>
                   </div>
                   
