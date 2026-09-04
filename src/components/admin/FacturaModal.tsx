@@ -132,15 +132,47 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
     };
   }, [isOpen, pedido]);
 
-  const handlePrint = () => {
+  // Descarga las fuentes de Google y devuelve un <style> con @font-face en base64
+  // para que html2canvas y el iframe puedan renderizar la tipografía correctamente.
+  const embedGoogleFonts = async (): Promise<string> => {
+    try {
+      const FONT_URL = 'https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap';
+      const cssResp = await fetch(FONT_URL, { headers: { 'Accept': 'text/css' } });
+      if (!cssResp.ok) return '';
+      let css = await cssResp.text();
+
+      // Reemplazar cada url(https://fonts.gstatic.com/...) por su base64
+      const urlMatches = [...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com[^)]+)\)/g)];
+      for (const m of urlMatches) {
+        try {
+          const fontResp = await fetch(m[1]);
+          const blob = await fontResp.blob();
+          const b64 = await new Promise<string>(res => {
+            const r = new FileReader();
+            r.onloadend = () => res(r.result as string);
+            r.readAsDataURL(blob);
+          });
+          css = css.replace(m[0], `url(${b64})`);
+        } catch { /* omitir esta fuente */ }
+      }
+      return `<style>${css}</style>`;
+    } catch {
+      return '';
+    }
+  };
+
+  const handlePrint = async () => {
     const printContent = document.getElementById('factura-content');
     if (!printContent) return;
 
-    // Update editable elements to their values for printing
-    const inputs = printContent.querySelectorAll('input[type="text"]');
-    inputs.forEach(input => {
-      (input as HTMLInputElement).setAttribute('value', (input as HTMLInputElement).value);
+    // Actualizar campos editables
+    printContent.querySelectorAll('input[type="text"], textarea').forEach(el => {
+      if (el instanceof HTMLInputElement) el.setAttribute('value', el.value);
+      if (el instanceof HTMLTextAreaElement) el.textContent = el.value;
     });
+
+    // Obtener fuentes embebidas en base64
+    const embeddedFonts = await embedGoogleFonts();
 
     const iframe = document.createElement('iframe');
     iframe.style.position = 'fixed';
@@ -166,10 +198,11 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
           <meta charset="utf-8">
           <title>Factura Pedido #${pedido.id.split('-')[0].toUpperCase()}</title>
           ${styleTags}
+          ${embeddedFonts}
           <style>
             @media print {
               @page { margin: 0; size: letter portrait; }
-              body { margin: 0.5cm; background: white !important; font-family: 'Inter', sans-serif; }
+              body { margin: 0.5cm; background: white !important; font-family: 'Manrope', sans-serif; }
               * {
                 -webkit-print-color-adjust: exact !important;
                 color-adjust: exact !important;
@@ -193,17 +226,13 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                 padding: 0 !important;
                 margin: 0 !important;
                 color: black !important;
-                font-family: inherit;
+                font-family: 'Manrope', sans-serif;
                 width: 100%;
                 resize: none;
               }
-              textarea {
-                overflow: hidden;
-              }
+              textarea { overflow: hidden; }
               input:focus, textarea:focus { outline: none !important; }
-              /* Hide elements only meant for the screen */
               .print-hidden { display: none !important; }
-              /* Strip shadow and rounding for clean print, reset forced widths */
               #factura-content {
                 box-shadow: none !important;
                 border-radius: 0 !important;
@@ -232,13 +261,20 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
     `);
     iframeDoc.close();
 
-    setTimeout(() => {
+    // Esperar a que las fuentes carguen en el iframe antes de imprimir
+    const doPrint = () => {
       iframe.contentWindow?.focus();
       iframe.contentWindow?.print();
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 1000);
-    }, 500);
+      setTimeout(() => { document.body.removeChild(iframe); }, 1000);
+    };
+
+    try {
+      await iframeDoc.fonts.ready;
+      await new Promise(r => setTimeout(r, 150));
+      doPrint();
+    } catch {
+      setTimeout(doPrint, 800);
+    }
   };
 
   const handleExportPDF = async () => {
@@ -247,6 +283,9 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
 
     try {
       setIsExporting(true);
+
+      // Obtener fuentes embebidas en base64
+      const embeddedFonts = await embedGoogleFonts();
 
       // --- Actualizar campos editables antes de clonar ---
       source.querySelectorAll('input[type="text"], textarea').forEach(el => {
@@ -264,20 +303,28 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
       clone.style.borderRadius = '0';
       clone.style.overflow = 'visible';
       clone.style.zIndex = '-1';
-      // Ocultar elementos marcados como no imprimibles
       clone.querySelectorAll('.print-hidden').forEach(el => {
         (el as HTMLElement).style.display = 'none';
       });
+
+      // Inyectar fuentes inline en el clon para que html2canvas las renderice
+      if (embeddedFonts) {
+        const fontStyle = document.createElement('div');
+        fontStyle.innerHTML = embeddedFonts;
+        const styleEl = fontStyle.firstChild as HTMLStyleElement;
+        if (styleEl) clone.insertBefore(styleEl, clone.firstChild);
+      }
+
       document.body.appendChild(clone);
 
-      // Esperar a que fuentes e imágenes estén listas
+      // Esperar fuentes + renderizado
       await document.fonts.ready;
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, 400));
 
       const canvas = await html2canvas(clone, {
         scale: 2,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         logging: false,
         backgroundColor: '#ffffff',
         width: clone.offsetWidth,
@@ -286,7 +333,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
 
       document.body.removeChild(clone);
 
-      // --- Generar PDF tamaño carta, una sola página con la factura ---
+      // --- Generar PDF tamaño carta ---
       const imgData = canvas.toDataURL('image/jpeg', 0.98);
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
       const pdfW = pdf.internal.pageSize.getWidth();
@@ -294,7 +341,6 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
       const margin = 10;
       const usableW = pdfW - margin * 2;
       const imgH = (canvas.height * usableW) / canvas.width;
-      // Si la imagen es más alta que la página, se escala para que entre
       const finalH = imgH > pdfH - margin * 2 ? pdfH - margin * 2 : imgH;
       const finalW = (canvas.width * finalH) / canvas.height;
       pdf.addImage(imgData, 'JPEG', margin, margin, finalW, finalH);
