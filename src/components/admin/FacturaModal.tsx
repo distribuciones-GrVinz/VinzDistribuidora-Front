@@ -336,37 +336,44 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
           </div>
           <div className="flex gap-3">
             {/* Controles de interfaz */}
-            <div className="flex items-center gap-2 bg-gray-100 dark:bg-black/40 px-3 py-1 rounded-lg">
-              <span className="text-sm font-bold dark:text-white">Pago:</span>
+            <div className="flex items-center gap-2 bg-surface-variant/40 dark:bg-black/60 px-3 py-1.5 rounded-lg border border-outline-variant/30">
+              <span className="text-sm font-bold text-on-surface-variant dark:text-white/80">Pago:</span>
               <select 
                 value={condicionPago} 
                 onChange={(e) => setCondicionPago(e.target.value)}
-                className="bg-transparent border-none focus:ring-0 text-sm cursor-pointer font-medium text-[#e3b54a]"
+                className="bg-surface border border-outline-variant/30 focus:border-primary dark:bg-[#222] dark:border-white/10 dark:focus:border-[#e3b54a] rounded px-2 py-0.5 text-sm cursor-pointer font-bold text-primary dark:text-[#e3b54a] outline-none"
               >
                 <option value="CONTADO">CONTADO</option>
                 <option value="CRÉDITO">CRÉDITO</option>
               </select>
             </div>
 
-            <button 
-              onClick={handleExportPDF}
-              disabled={isExporting}
-              className="flex items-center gap-2 px-4 py-2 bg-secondary/10 text-secondary dark:bg-white/10 dark:text-white font-bold rounded-xl hover:bg-secondary/20 transition-colors text-sm disabled:opacity-50"
-            >
-              {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-              <span className="hidden sm:inline">Exportar PDF</span>
-            </button>
-            <button 
-              onClick={handlePrint}
-              disabled={isExporting}
-              className="flex items-center gap-2 px-4 py-2 bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black font-bold rounded-xl hover:opacity-80 transition-opacity text-sm disabled:opacity-50"
-            >
-              <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">Imprimir (Orig+Copia)</span>
-            </button>
+            {/* Grupo de botones Imprimir/Exportar */}
+            <div className="flex bg-tertiary/10 dark:bg-[#e3b54a]/10 rounded-xl border border-tertiary/20 dark:border-[#e3b54a]/20 p-0.5 overflow-hidden">
+              <button 
+                onClick={handlePrint}
+                disabled={isExporting}
+                className="flex items-center gap-2 px-3 py-1.5 hover:bg-tertiary text-tertiary hover:text-white dark:text-[#e3b54a] dark:hover:bg-[#e3b54a] dark:hover:text-black font-bold rounded-lg transition-colors text-sm disabled:opacity-50"
+                title="Imprimir Factura"
+              >
+                <Printer className="w-4 h-4" />
+                <span className="hidden md:inline">Imprimir</span>
+              </button>
+              <div className="w-[1px] bg-tertiary/20 dark:bg-[#e3b54a]/20 mx-0.5 my-1" />
+              <button 
+                onClick={handleExportPDF}
+                disabled={isExporting}
+                className="flex items-center gap-2 px-3 py-1.5 hover:bg-tertiary text-tertiary hover:text-white dark:text-[#e3b54a] dark:hover:bg-[#e3b54a] dark:hover:text-black font-bold rounded-lg transition-colors text-sm disabled:opacity-50"
+                title="Descargar PDF"
+              >
+                {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                <span className="hidden md:inline">PDF</span>
+              </button>
+            </div>
+
             <button 
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-outline-variant/20 dark:hover:bg-white/10 text-on-surface-variant dark:text-white/60 transition-colors"
+              className="p-2 ml-2 rounded-full hover:bg-outline-variant/20 dark:hover:bg-white/10 text-on-surface-variant dark:text-white/60 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -434,8 +441,8 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
               {/* Factura Info */}
               <div className="w-[45%] text-right">
                 <h1 className="text-lg font-black text-[#e3b54a] mb-1 uppercase tracking-wide">Factura</h1>
-                <div className="flex items-center justify-end font-bold text-base mb-1">
-                  <span className="mr-1">No.</span>
+                <div className="flex items-center justify-end font-bold text-base mb-1 gap-2">
+                  <span>No.</span>
                   <input 
                     type="text" 
                     value={numeroFiscalLocal} 
