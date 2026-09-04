@@ -244,6 +244,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                 width: 100%;
                 resize: none;
               }
+              input::placeholder, textarea::placeholder { color: transparent !important; }
               input[type="date"]::-webkit-calendar-picker-indicator { display: none !important; }
               input[type="date"]::-webkit-inner-spin-button { display: none !important; }
               textarea { overflow: hidden; }
@@ -316,8 +317,14 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
 
       // --- Actualizar campos editables antes de clonar ---
       source.querySelectorAll('input[type="text"], input[type="date"], textarea').forEach(el => {
-        if (el instanceof HTMLInputElement) el.setAttribute('value', el.value);
-        if (el instanceof HTMLTextAreaElement) el.textContent = el.value;
+        if (el instanceof HTMLInputElement) {
+          el.setAttribute('value', el.value);
+          el.removeAttribute('placeholder'); // Prevenir que html2canvas imprima el placeholder
+        }
+        if (el instanceof HTMLTextAreaElement) {
+          el.textContent = el.value;
+          el.removeAttribute('placeholder');
+        }
       });
 
       // --- Clonar el nodo FUERA del modal para que html2canvas lo vea limpio ---
