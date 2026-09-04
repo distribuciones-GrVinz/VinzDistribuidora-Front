@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Printer, CheckCircle } from 'lucide-react';
+import { X, Printer, CheckCircle, Download, Loader2 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { ScrollProgressIndicator } from '../ui/ScrollProgressIndicator';
 import { getSARConfig } from '../../services/adminService';
@@ -70,6 +72,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
   useLockBodyScroll(isOpen);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [sarConfig, setSarConfig] = useState<any>(null);
+  const [isExporting, setIsExporting] = useState(false);
   
   // Editable fields for the invoice (Client)
   const [clienteNombre, setClienteNombre] = useState('');
@@ -238,6 +241,60 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
     }, 500);
   };
 
+  const handleExportPDF = async () => {
+    const printContent = document.getElementById('factura-content');
+    if (!printContent) return;
+
+    try {
+      setIsExporting(true);
+      
+      // Update editable elements to their values for capturing
+      const inputs = printContent.querySelectorAll('input[type="text"]');
+      inputs.forEach(input => {
+        (input as HTMLInputElement).setAttribute('value', (input as HTMLInputElement).value);
+      });
+
+      // Temporarily hide elements not meant for print
+      const hiddenElements = printContent.querySelectorAll('.print-hidden');
+      hiddenElements.forEach(el => (el as HTMLElement).style.display = 'none');
+
+      // Strip border radius/shadow temporarily
+      const originalStyle = printContent.style.cssText;
+      printContent.style.boxShadow = 'none';
+      printContent.style.borderRadius = '0';
+
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+
+      // Restore elements
+      hiddenElements.forEach(el => (el as HTMLElement).style.display = '');
+      printContent.style.cssText = originalStyle;
+
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'letter'
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      // Calculate margins to center the invoice vertically/horizontally if needed, 
+      // but usually we just put it at 0, 0 or with a small margin.
+      const margin = 12.7; // 0.5 inch in mm
+      pdf.addImage(imgData, 'JPEG', margin, margin, pdfWidth - (margin*2), (pdfHeight * (pdfWidth - (margin*2))) / pdfWidth);
+      pdf.save(`Factura-${pedido.id.split('-')[0].toUpperCase()}.pdf`);
+    } catch (error) {
+      console.error('Error al exportar PDF:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (!isOpen || !pedido) return null;
 
   const dateObj = new Date(pedido.created_at);
@@ -292,11 +349,20 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
             </div>
 
             <button 
+              onClick={handleExportPDF}
+              disabled={isExporting}
+              className="flex items-center gap-2 px-4 py-2 bg-secondary/10 text-secondary dark:bg-white/10 dark:text-white font-bold rounded-xl hover:bg-secondary/20 transition-colors text-sm disabled:opacity-50"
+            >
+              {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              <span className="hidden sm:inline">Exportar PDF</span>
+            </button>
+            <button 
               onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black font-bold rounded-xl hover:opacity-80 transition-opacity text-sm"
+              disabled={isExporting}
+              className="flex items-center gap-2 px-4 py-2 bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black font-bold rounded-xl hover:opacity-80 transition-opacity text-sm disabled:opacity-50"
             >
               <Printer className="w-4 h-4" />
-              Imprimir (Orig+Copia)
+              <span className="hidden sm:inline">Imprimir (Orig+Copia)</span>
             </button>
             <button 
               onClick={onClose}
