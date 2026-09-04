@@ -73,11 +73,13 @@ export function OrderManager() {
 
   const sortedPedidos = useMemo(() => {
     return [...filteredPedidos].sort((a, b) => {
-      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      const dateFieldA = filterTab === 'Pendientes' ? a.created_at : a.updated_at;
+      const dateFieldB = filterTab === 'Pendientes' ? b.created_at : b.updated_at;
+      const dateA = dateFieldA ? new Date(dateFieldA).getTime() : 0;
+      const dateB = dateFieldB ? new Date(dateFieldB).getTime() : 0;
       return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
     });
-  }, [filteredPedidos, sortOrder]);
+  }, [filteredPedidos, sortOrder, filterTab]);
 
   const totalPages = Math.ceil(sortedPedidos.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
