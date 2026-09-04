@@ -5,6 +5,7 @@ import { Package, Clock, CheckCircle, Truck, XCircle, ChevronDown, ChevronUp, Ro
 import { useCart } from '../../context/CartContext';
 import { useNotification } from '../../context/NotificationContext';
 import { getProductos } from '../../services/adminService';
+import { formatDeliveryDateRange } from '../../utils/dateUtils';
 
 interface DetallePedido {
   id: string;
@@ -222,7 +223,7 @@ export function OrderHistory() {
                     {pedido.fecha_entrega_esperada_inicio && pedido.fecha_entrega_esperada_fin && (
                       <p className="text-sm text-on-surface dark:text-white">
                         <span className="font-bold text-tertiary dark:text-[#e3b54a] uppercase text-xs tracking-wider mr-2">Entrega Esperada:</span> 
-                        {new Date(pedido.fecha_entrega_esperada_inicio + "T12:00:00").toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} - {new Date(pedido.fecha_entrega_esperada_fin + "T12:00:00").toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                        {formatDeliveryDateRange(pedido.fecha_entrega_esperada_inicio, pedido.fecha_entrega_esperada_fin)}
                       </p>
                     )}
                   </div>

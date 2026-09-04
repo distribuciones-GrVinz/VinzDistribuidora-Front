@@ -5,6 +5,7 @@ import { ProductionSummaryModal } from '../../components/admin/ProductionSummary
 import { FacturaModal } from '../../components/admin/FacturaModal';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { TableSkeleton } from '../../components/ui/Skeleton';
+import { formatDeliveryDateRange } from '../../utils/dateUtils';
 
 export function OrderManager() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -185,9 +186,9 @@ export function OrderManager() {
                       {pedido.fecha_entrega_esperada_inicio && pedido.fecha_entrega_esperada_fin && (
                         <>
                           <span className="w-1 h-1 bg-outline-variant dark:bg-white/20 rounded-full hidden sm:block"></span>
-                          <span className="text-primary dark:text-[#e3b54a] font-bold text-xs bg-primary/10 dark:bg-[#e3b54a]/10 px-2 py-0.5 rounded-md">
-                            Entrega: {new Date(pedido.fecha_entrega_esperada_inicio + "T12:00:00").toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} - {new Date(pedido.fecha_entrega_esperada_fin + "T12:00:00").toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                          </span>
+                            <p className="text-xs font-medium text-tertiary dark:text-[#e3b54a] mt-2 bg-primary/10 dark:bg-[#e3b54a]/10 px-3 py-1 rounded-full inline-block">
+                      Entrega: {formatDeliveryDateRange(pedido.fecha_entrega_esperada_inicio, pedido.fecha_entrega_esperada_fin)}
+                    </p>
                         </>
                       )}
                     </div>
@@ -293,7 +294,7 @@ export function OrderManager() {
                 <div className="md:col-span-2 bg-primary-container/20 dark:bg-[#e3b54a]/10 p-4 rounded-xl border border-primary/20 dark:border-[#e3b54a]/20">
                   <p className="text-xs font-bold text-primary dark:text-[#e3b54a] uppercase tracking-wider mb-1">Ventana de Entrega Asignada</p>
                   <p className="font-semibold text-on-surface dark:text-white text-sm">
-                    {new Date(selectedOrder.fecha_entrega_esperada_inicio + "T12:00:00").toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} a {new Date(selectedOrder.fecha_entrega_esperada_fin + "T12:00:00").toLocaleDateString('es-HN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                      Entrega: {formatDeliveryDateRange(selectedOrder.fecha_entrega_esperada_inicio, selectedOrder.fecha_entrega_esperada_fin)}
                   </p>
                 </div>
               )}
