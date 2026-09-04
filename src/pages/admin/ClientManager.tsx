@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { getClientes, createClienteAdmin, updateCliente } from '../../services/adminService';
 import { useNotification } from '../../context/NotificationContext';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
+import { TableSkeleton } from '../../components/ui/Skeleton';
 
 export function ClientManager() {
   const { showNotification } = useNotification();
@@ -201,7 +202,9 @@ export function ClientManager() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="text-center opacity-50 py-10">Cargando clientes...</td>
+                  <td colSpan={5} className="p-0">
+                    <TableSkeleton columns={5} rows={5} />
+                  </td>
                 </tr>
               ) : currentItems.map((cliente) => (
                 <tr key={cliente.id} className="group">

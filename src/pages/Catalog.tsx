@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { ProductImmersiveModal } from '../components/client/ProductImmersiveModal';
+import { ProductCardSkeleton } from '../components/ui/Skeleton';
 
 interface Producto {
   id: string;
@@ -221,8 +222,10 @@ export function Catalog() {
           );
         })()}
         {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#C89F53]"></div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 mt-8">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <ProductCardSkeleton key={i} />
+            ))}
           </div>
         ) : (
           <div className="space-y-8">

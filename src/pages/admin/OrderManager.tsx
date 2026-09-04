@@ -4,6 +4,7 @@ import { getPedidos, updateEstadoPedido } from '../../services/adminService';
 import { ProductionSummaryModal } from '../../components/admin/ProductionSummaryModal';
 import { FacturaModal } from '../../components/admin/FacturaModal';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
+import { TableSkeleton } from '../../components/ui/Skeleton';
 
 export function OrderManager() {
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -152,7 +153,9 @@ export function OrderManager() {
 
           <div className="space-y-4">
             {loading ? (
-              <div className="text-center py-8 text-on-surface-variant/50">Cargando pedidos...</div>
+              <div className="py-4">
+                <TableSkeleton columns={4} rows={5} />
+              </div>
             ) : sortedPedidos.length === 0 ? (
               <div className="text-center py-8 text-on-surface-variant/50">No hay pedidos en esta sección.</div>
             ) : currentItems.map((pedido) => (
