@@ -211,7 +211,7 @@ export function CartPage() {
         </div>
       )}
 
-      <h1 className="text-4xl md:text-5xl font-headline-xl font-bold mb-12 text-on-surface dark:text-white drop-shadow-sm">Tu Pedido</h1>
+      <h1 className="text-4xl md:text-5xl font-headline-xl font-bold mb-12 text-on-surface dark:text-white drop-shadow-sm">Carrito</h1>
 
       {success ? (
         <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-surface dark:bg-[#0f0f0f] border border-outline-variant/30 dark:border-white/5 rounded-2xl shadow-sm">

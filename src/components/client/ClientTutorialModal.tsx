@@ -47,9 +47,9 @@ export function ClientTutorialModal({ userName, currentStep, onStepChange, onClo
     },
     {
       icon: <ShoppingCart className="w-8 h-8 text-primary dark:text-[#e3b54a]" />,
-      title: 'TU PEDIDO',
+      title: 'CARRITO',
       headline: 'Gestiona tu carrito de compras',
-      description: 'Revisa los productos que has seleccionado, ajusta las cantidades y confirma tu pedido cuando estés listo.',
+      description: 'Revisa los productos que has seleccionado, ajusta las cantidades y confirma tu carrito cuando estés listo.',
       buttonText: 'Siguiente'
     },
     {

@@ -12,7 +12,7 @@ export function ClientNavBar({ tutorialStep }: { tutorialStep?: number | null })
   const navItems = [
     { to: '/catalogo', icon: Store, label: 'Catálogo', end: false },
     { to: '/mis-pedidos', icon: ClipboardList, label: 'Mis Pedidos', end: false },
-    { to: '/carrito', icon: ShoppingCart, label: 'Tu Pedido', end: false },
+    { to: '/carrito', icon: ShoppingCart, label: 'Carrito', end: false },
     { to: '/configuracion', icon: User, label: 'Perfil', end: false },
   ];
 
