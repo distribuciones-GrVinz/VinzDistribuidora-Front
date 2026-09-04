@@ -192,6 +192,11 @@ export function OrderManager() {
                         </>
                       )}
                     </div>
+                    {pedido.detalles && pedido.detalles.length > 0 && (
+                      <p className="text-xs text-on-surface-variant/70 dark:text-white/50 mt-1 line-clamp-1">
+                        <span className="font-semibold">{pedido.detalles.length} artículo{pedido.detalles.length !== 1 ? 's' : ''}:</span> {pedido.detalles.map((d: any) => d.producto_nombre).join(', ')}
+                      </p>
+                    )}
                   </div>
                 </div>
 

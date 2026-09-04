@@ -185,6 +185,9 @@ export function OrderHistory() {
                   <p className="text-on-surface dark:text-white font-medium capitalize text-sm mt-1">
                     {new Date(pedido.created_at).toLocaleDateString('es-HN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
+                  <p className="text-xs text-on-surface-variant dark:text-white/50 mt-1.5 line-clamp-1">
+                    <span className="font-semibold">{pedido.detalles.length} artículo{pedido.detalles.length !== 1 ? 's' : ''}:</span> {pedido.detalles.map((d: any) => d.producto_nombre).join(', ')}
+                  </p>
                 </div>
                 
                 <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 border-outline-variant/20 dark:border-white/5 pt-4 md:pt-0">

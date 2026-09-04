@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Store, ClipboardList, ShoppingCart, User } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { motion } from 'framer-motion';
+import { triggerHaptic } from '../../utils/haptics';
 
 export function ClientNavBar({ tutorialStep }: { tutorialStep?: number | null }) {
   const location = useLocation();
@@ -43,6 +44,7 @@ export function ClientNavBar({ tutorialStep }: { tutorialStep?: number | null })
               key={item.to}
               to={item.to}
               end={item.end}
+              onClick={() => triggerHaptic(40)}
               onMouseEnter={() => setHoveredPath(item.to)}
               className={`group relative flex flex-col md:flex-row items-center justify-center w-16 h-14 md:w-14 md:h-14 md:my-1 rounded-2xl transition-all duration-300 ${
                 isHighlighted 
