@@ -162,7 +162,7 @@ export function OrderManager() {
             ) : sortedPedidos.length === 0 ? (
               <div className="text-center py-8 text-on-surface-variant/50">No hay pedidos en esta sección.</div>
             ) : currentItems.map((pedido) => (
-              <div key={pedido.id} className="group flex flex-col md:flex-row md:items-center justify-between p-6 bg-surface dark:bg-[#1a1a1a] rounded-2xl border border-outline-variant/50 dark:border-white/5 hover:border-tertiary/40 dark:hover:border-[#e3b54a]/30 transition-colors shadow-sm hover:shadow-md dark:shadow-none">
+              <div key={pedido.id} className="group flex flex-col md:flex-row md:items-center justify-between p-4 bg-surface dark:bg-[#1a1a1a] rounded-2xl border border-outline-variant/50 dark:border-white/5 hover:border-tertiary/40 dark:hover:border-[#e3b54a]/30 transition-colors shadow-sm hover:shadow-md dark:shadow-none">
                 <div className="flex items-start gap-4 mb-4 md:mb-0">
                   <div className={`p-3 rounded-xl flex-shrink-0 ${
                     pedido.estado === 'Pendiente' ? 'bg-primary-container/20 text-primary-container dark:bg-[#e3b54a]/10 dark:text-[#e3b54a]' : 
@@ -284,7 +284,7 @@ export function OrderManager() {
       {/* Modal de Gestión de Pedido */}
       {isModalOpen && selectedOrder && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-surface dark:bg-[#0f0f0f] w-full max-w-2xl rounded-3xl p-6 md:p-8 shadow-2xl border border-outline-variant/30 dark:border-white/10 relative max-h-[90vh] overflow-y-auto hide-scrollbar">
+          <div className="bg-surface dark:bg-[#0f0f0f] w-full max-w-2xl rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl border border-outline-variant/30 dark:border-white/10 relative max-h-[90vh] overflow-y-auto hide-scrollbar flex flex-col">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-primary dark:text-white mb-2">Gestionar Pedido</h2>

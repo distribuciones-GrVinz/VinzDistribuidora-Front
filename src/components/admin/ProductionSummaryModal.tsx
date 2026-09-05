@@ -188,9 +188,10 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
           </div>
           <button 
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-outline-variant/20 dark:hover:bg-white/10 text-on-surface-variant dark:text-white/60 transition-colors bg-surface dark:bg-white/5 shrink-0"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 dark:bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors group shrink-0"
+            aria-label="Cerrar"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5 transition-transform duration-300 group-hover:rotate-90" />
           </button>
         </div>
 

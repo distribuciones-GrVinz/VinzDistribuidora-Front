@@ -486,7 +486,7 @@ export function ClientManager() {
       {/* Modal Detalles Cliente */}
       {isDetailsModalOpen && selectedCliente && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-surface dark:bg-[#0f0f0f] w-full max-w-2xl rounded-3xl p-6 md:p-8 shadow-2xl border border-outline-variant/30 dark:border-white/10 relative max-h-[85vh] overflow-y-auto hide-scrollbar">
+          <div className="bg-surface dark:bg-[#0f0f0f] w-full max-w-2xl rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl border border-outline-variant/30 dark:border-white/10 relative max-h-[85vh] overflow-y-auto hide-scrollbar flex flex-col">
             <div className="flex justify-between items-start mb-6">
               <h2 className="text-xl md:text-2xl font-bold text-primary dark:text-white">Detalles del Cliente</h2>
               <button

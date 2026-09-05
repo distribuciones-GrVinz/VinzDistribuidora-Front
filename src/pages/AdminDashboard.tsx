@@ -88,7 +88,7 @@ export function AdminDashboard() {
       {/* Main Stats (Magazine Layout) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12 relative z-10">
         {/* Nueva Tarjeta de Rendimiento (Performance Analytics) */}
-        <div className="lg:col-span-2 group relative flex w-full flex-col rounded-[1.5rem] bg-white dark:bg-slate-950 p-5 md:p-6 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-tertiary/30 dark:hover:shadow-[#C89F53]/20">
+        <div className="lg:col-span-2 group relative flex w-full flex-col rounded-[1.5rem] bg-white dark:bg-slate-950 p-4 md:p-6 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-tertiary/30 dark:hover:shadow-[#C89F53]/20">
           <div className="absolute inset-0 rounded-[1.5rem] bg-gradient-to-r from-tertiary via-primary-container to-tertiary opacity-20 blur-md transition-opacity duration-300 group-hover:opacity-30" />
           <div className="absolute inset-[2px] rounded-[22px] bg-white dark:bg-slate-950" />
           <div className="relative h-full flex flex-col justify-between">
@@ -123,24 +123,24 @@ export function AdminDashboard() {
               </span>
             </div>
             
-            <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4 mt-auto">
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-4 border border-slate-200 dark:border-slate-800">
+            <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mt-auto">
+              <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-3 md:p-4 border border-slate-200 dark:border-slate-800">
                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Ingresos (L)</p>
-                <p className="text-2xl md:text-3xl font-headline-lg font-bold text-slate-900 dark:text-white">{ingresosActuales.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                <p className="text-xl md:text-3xl font-headline-lg font-bold text-slate-900 dark:text-white">{ingresosActuales.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
                 <span className={`text-[10px] font-bold ${crecimiento >= 0 ? 'text-emerald-500' : 'text-red-500'} flex items-center gap-1 mt-1`}>
                   {crecimiento >= 0 ? '↑' : '↓'} {Math.abs(crecimiento).toFixed(1)}% vs ant.
                 </span>
               </div>
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-4 border border-slate-200 dark:border-slate-800">
+              <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-3 md:p-4 border border-slate-200 dark:border-slate-800">
                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Pedidos ({periodo})</p>
-                <p className="text-2xl md:text-3xl font-headline-lg font-bold text-slate-900 dark:text-white">{pedidosActuales.length}</p>
+                <p className="text-xl md:text-3xl font-headline-lg font-bold text-slate-900 dark:text-white">{pedidosActuales.length}</p>
                 <span className="text-[10px] font-bold text-slate-500 mt-1 block">
                   En proceso
                 </span>
               </div>
-              <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-4 border border-slate-200 dark:border-slate-800">
+              <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 p-3 md:p-4 border border-slate-200 dark:border-slate-800">
                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Ticket Promedio</p>
-                <p className="text-2xl md:text-3xl font-headline-lg font-bold text-slate-900 dark:text-white">
+                <p className="text-xl md:text-3xl font-headline-lg font-bold text-slate-900 dark:text-white">
                   {(pedidosActuales.length > 0 ? (ingresosActuales / pedidosActuales.length) : 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                 </p>
                 <span className="text-[10px] font-bold text-slate-500 mt-1 block">
@@ -187,7 +187,7 @@ export function AdminDashboard() {
         </div>
 
         {/* Tarjeta Dorada */}
-        <div className="lg:col-span-1 h-full bg-primary-container p-6 md:p-8 rounded-[1.5rem] relative overflow-hidden text-black group shadow-xl hover:shadow-2xl hover:-translate-y-1 border-2 border-white/20 dark:shadow-[0_0_40px_rgba(227,181,74,0.15)] dark:border-[#e3b54a]/30 transition-all flex flex-col justify-between">
+        <div className="lg:col-span-1 h-full bg-primary-container p-5 md:p-8 rounded-[1.5rem] relative overflow-hidden text-black group shadow-xl hover:shadow-2xl hover:-translate-y-1 border-2 border-white/20 dark:shadow-[0_0_40px_rgba(227,181,74,0.15)] dark:border-[#e3b54a]/30 transition-all flex flex-col justify-between">
           <div className="absolute -right-10 -bottom-10 opacity-10 rotate-12 scale-150 pointer-events-none">
             <ChefHat className="w-64 h-64" />
           </div>
@@ -220,7 +220,7 @@ export function AdminDashboard() {
         <h3 className="text-sm tracking-[0.2em] text-on-surface-variant/50 dark:text-white/40 font-bold uppercase mb-8">Módulos Principales</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {modules.map((mod) => (
-            <Link key={mod.name} to={mod.path} className={`${mod.color} ${mod.hover} border-2 border-outline-variant/60 dark:border-white/10 p-8 rounded-3xl transition-all group hover:-translate-y-1 block relative overflow-hidden shadow-md hover:shadow-xl dark:shadow-none bg-white/90 backdrop-blur-md`}>
+            <Link key={mod.name} to={mod.path} className={`${mod.color} ${mod.hover} border-2 border-outline-variant/60 dark:border-white/10 p-5 md:p-8 rounded-3xl transition-all group hover:-translate-y-1 block relative overflow-hidden shadow-md hover:shadow-xl dark:shadow-none bg-white/90 backdrop-blur-md`}>
               <div className="w-12 h-12 bg-surface dark:bg-black/50 rounded-full flex items-center justify-center mb-6 text-tertiary dark:text-[#e3b54a] border border-outline-variant/50 dark:border-white/5 group-hover:bg-tertiary dark:group-hover:bg-[#e3b54a] group-hover:text-white dark:group-hover:text-black transition-colors relative z-10 shadow-sm dark:shadow-none">
                 <mod.icon className="w-5 h-5" />
               </div>
