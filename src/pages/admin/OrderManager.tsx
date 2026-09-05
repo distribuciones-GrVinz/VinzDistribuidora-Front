@@ -1,4 +1,4 @@
-import { Package, Clock, CheckCircle, ChefHat, Receipt } from 'lucide-react';
+import { Package, Clock, CheckCircle, ChefHat, Receipt, X } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { getPedidos, updateEstadoPedido } from '../../services/adminService';
 import { ProductionSummaryModal } from '../../components/admin/ProductionSummaryModal';
@@ -285,8 +285,19 @@ export function OrderManager() {
       {isModalOpen && selectedOrder && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-surface dark:bg-[#0f0f0f] w-full max-w-2xl rounded-3xl p-6 md:p-8 shadow-2xl border border-outline-variant/30 dark:border-white/10 relative max-h-[90vh] overflow-y-auto hide-scrollbar">
-            <h2 className="text-2xl font-bold text-primary dark:text-white mb-2">Gestionar Pedido</h2>
-            <p className="text-sm text-on-surface-variant/70 dark:text-white/40 mb-6">Pedido {selectedOrder.id}</p>
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-primary dark:text-white mb-2">Gestionar Pedido</h2>
+                <p className="text-sm text-on-surface-variant/70 dark:text-white/40">Pedido {selectedOrder.id}</p>
+              </div>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-red-500 hover:text-red-600 transition-transform duration-300 hover:rotate-90 p-1"
+                aria-label="Cerrar"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="bg-white dark:bg-[#1a1a1a] p-4 rounded-xl border border-outline-variant/30 dark:border-white/5">
@@ -361,11 +372,6 @@ export function OrderManager() {
               </div>
             </div>
             
-            <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant/30 dark:border-white/10 mt-6">
-              <button onClick={() => setIsModalOpen(false)} className="px-6 py-2 rounded-full font-bold bg-primary text-white hover:bg-tertiary dark:bg-white/10 dark:text-white dark:hover:bg-white/20 transition-colors">
-                Cerrar
-              </button>
-            </div>
           </div>
         </div>
       )}

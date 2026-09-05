@@ -1,4 +1,4 @@
-import { Mail, Phone } from 'lucide-react';
+import { Mail, Phone, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getClientes, createClienteAdmin, updateCliente } from '../../services/adminService';
 import { useNotification } from '../../context/NotificationContext';
@@ -487,7 +487,16 @@ export function ClientManager() {
       {isDetailsModalOpen && selectedCliente && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-surface dark:bg-[#0f0f0f] w-full max-w-2xl rounded-3xl p-6 md:p-8 shadow-2xl border border-outline-variant/30 dark:border-white/10 relative max-h-[85vh] overflow-y-auto hide-scrollbar">
-            <h2 className="text-xl md:text-2xl font-bold text-primary dark:text-white mb-6">Detalles del Cliente</h2>
+            <div className="flex justify-between items-start mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-primary dark:text-white">Detalles del Cliente</h2>
+              <button
+                onClick={() => setIsDetailsModalOpen(false)}
+                className="text-red-500 hover:text-red-600 transition-transform duration-300 hover:rotate-90 p-1"
+                aria-label="Cerrar"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
             
             <div className="space-y-6">
               {/* Información General */}
@@ -555,14 +564,6 @@ export function ClientManager() {
               </div>
             </div>
 
-            <div className="mt-8 text-right">
-              <button 
-                onClick={() => setIsDetailsModalOpen(false)}
-                className="px-6 py-2.5 bg-surface dark:bg-[#1a1a1a] text-on-surface dark:text-white font-bold rounded-xl border border-outline-variant/50 dark:border-white/10 hover:bg-outline-variant/30 dark:hover:bg-white/5"
-              >
-                Cerrar
-              </button>
-            </div>
           </div>
         </div>
       )}
