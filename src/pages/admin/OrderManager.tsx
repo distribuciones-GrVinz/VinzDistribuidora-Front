@@ -292,10 +292,10 @@ export function OrderManager() {
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-red-500 hover:text-red-600 transition-transform duration-300 hover:rotate-90 p-1"
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 dark:bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors group"
                 aria-label="Cerrar"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 transition-transform duration-300 group-hover:rotate-90" />
               </button>
             </div>
             
