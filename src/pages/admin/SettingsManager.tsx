@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { useNotification } from '../../context/NotificationContext';
-import { Calendar, Moon, Sun, Monitor, FileText, Save, AlertTriangle, QrCode, Download } from 'lucide-react';
+import { Calendar, Moon, Sun, Monitor, FileText, Save, AlertTriangle, QrCode, Download, ChevronDown, ChevronUp } from 'lucide-react';
 import { getSARConfig, updateSARConfig, getConfiguracionesEntrega, updateConfiguracionesEntrega } from '../../services/adminService';
 import { QRCodeCanvas } from 'qrcode.react';
 
 export function SettingsManager() {
   const { theme, toggleTheme } = useTheme();
   const { showNotification } = useNotification();
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  const toggleSection = (section: string) => {
+    setExpandedSection(expandedSection === section ? null : section);
+  };
 
   const downloadQR = () => {
     const canvas = document.getElementById('qr-gen') as HTMLCanvasElement;
@@ -134,7 +139,6 @@ export function SettingsManager() {
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 p-6 bg-surface dark:bg-[#1a1a1a] rounded-2xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none transition-colors">
             <div>
               <h3 className="font-bold text-on-surface dark:text-white text-lg">Modo de Visualización</h3>
-              <p className="text-on-surface-variant/70 dark:text-white/40 text-sm mt-1 max-w-sm">Cambia libremente entre la versión iluminada (estilo crema boutique) y la oscura (Backstage nocturno) del panel.</p>
             </div>
             
             <button 
@@ -152,15 +156,19 @@ export function SettingsManager() {
         </section>
 
         {/* Generador de QR */}
-        <section className="bg-white dark:bg-[#0f0f0f] border border-outline-variant/50 dark:border-white/5 rounded-3xl p-6 md:p-10 shadow-lg dark:shadow-2xl transition-colors">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="bg-surface dark:bg-[#1a1a1a] p-3 rounded-xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none">
-              <QrCode className="w-6 h-6 text-tertiary dark:text-[#e3b54a]" />
+        <section className="bg-white dark:bg-[#0f0f0f] border border-outline-variant/50 dark:border-white/5 rounded-3xl p-6 md:p-8 shadow-lg dark:shadow-2xl transition-colors">
+          <button onClick={() => toggleSection('qr')} className="w-full flex items-center justify-between outline-none">
+            <div className="flex items-center gap-3">
+              <div className="bg-surface dark:bg-[#1a1a1a] p-3 rounded-xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none">
+                <QrCode className="w-6 h-6 text-tertiary dark:text-[#e3b54a]" />
+              </div>
+              <h2 className="text-xl font-headline-lg text-on-surface dark:text-white text-left">Código QR de la App</h2>
             </div>
-            <h2 className="text-2xl font-headline-lg text-on-surface dark:text-white">Código QR de la App</h2>
-          </div>
+            {expandedSection === 'qr' ? <ChevronUp className="w-6 h-6 text-on-surface dark:text-white/70" /> : <ChevronDown className="w-6 h-6 text-on-surface dark:text-white/70" />}
+          </button>
 
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-surface dark:bg-[#1a1a1a] rounded-2xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none transition-colors">
+          {expandedSection === 'qr' && (
+            <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-surface dark:bg-[#1a1a1a] rounded-2xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none transition-colors">
             <div className="flex flex-col items-center gap-4">
               <div className="bg-white p-4 rounded-xl shadow-inner border border-gray-200">
                 <QRCodeCanvas
@@ -179,9 +187,6 @@ export function SettingsManager() {
                   }}
                 />
               </div>
-              <p className="text-on-surface-variant/70 dark:text-white/40 text-sm max-w-sm text-center">
-                Escanea este código para acceder rápidamente a la aplicación.
-              </p>
             </div>
             
             <button 
@@ -192,22 +197,23 @@ export function SettingsManager() {
               <span>Descargar QR</span>
             </button>
           </div>
+          )}
         </section>
 
         {/* Facturación SAR */}
-        <section className="bg-white dark:bg-[#0f0f0f] border border-outline-variant/50 dark:border-white/5 rounded-3xl p-6 md:p-10 shadow-lg dark:shadow-2xl transition-colors">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="bg-surface dark:bg-[#1a1a1a] p-3 rounded-xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none">
-              <FileText className="w-6 h-6 text-tertiary dark:text-[#e3b54a]" />
+        <section className="bg-white dark:bg-[#0f0f0f] border border-outline-variant/50 dark:border-white/5 rounded-3xl p-6 md:p-8 shadow-lg dark:shadow-2xl transition-colors">
+          <button onClick={() => toggleSection('sar')} className="w-full flex items-center justify-between outline-none">
+            <div className="flex items-center gap-3">
+              <div className="bg-surface dark:bg-[#1a1a1a] p-3 rounded-xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none">
+                <FileText className="w-6 h-6 text-tertiary dark:text-[#e3b54a]" />
+              </div>
+              <h2 className="text-xl font-headline-lg text-on-surface dark:text-white text-left">Facturación SAR</h2>
             </div>
-            <div>
-              <h2 className="text-2xl font-headline-lg text-on-surface dark:text-white">Facturación SAR</h2>
-              <p className="text-on-surface-variant/70 dark:text-white/40 text-sm mt-1">Configura el control de correlativos y autorización.</p>
-            </div>
-          </div>
+            {expandedSection === 'sar' ? <ChevronUp className="w-6 h-6 text-on-surface dark:text-white/70" /> : <ChevronDown className="w-6 h-6 text-on-surface dark:text-white/70" />}
+          </button>
 
-          {!isLoading && sarConfig && (
-            <form onSubmit={handleSaveSAR} className="space-y-6">
+          {expandedSection === 'sar' && !isLoading && sarConfig && (
+            <form onSubmit={handleSaveSAR} className="space-y-6 mt-8">
               
               {warningMessage && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 p-4 rounded-xl flex items-start gap-3">
@@ -308,19 +314,19 @@ export function SettingsManager() {
         </section>
 
         {/* Configuracion Entregas */}
-        <section className="bg-white dark:bg-[#0f0f0f] border border-outline-variant/50 dark:border-white/5 rounded-3xl p-6 md:p-10 shadow-lg dark:shadow-2xl transition-colors">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="bg-surface dark:bg-[#1a1a1a] p-3 rounded-xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none">
-              <Calendar className="w-6 h-6 text-tertiary dark:text-[#e3b54a]" />
+        <section className="bg-white dark:bg-[#0f0f0f] border border-outline-variant/50 dark:border-white/5 rounded-3xl p-6 md:p-8 shadow-lg dark:shadow-2xl transition-colors">
+          <button onClick={() => toggleSection('entregas')} className="w-full flex items-center justify-between outline-none">
+            <div className="flex items-center gap-3">
+              <div className="bg-surface dark:bg-[#1a1a1a] p-3 rounded-xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none">
+                <Calendar className="w-6 h-6 text-tertiary dark:text-[#e3b54a]" />
+              </div>
+              <h2 className="text-xl font-headline-lg text-on-surface dark:text-white text-left">Calendario de Despachos</h2>
             </div>
-            <div>
-              <h2 className="text-2xl font-headline-lg text-on-surface dark:text-white">Calendario de Despachos</h2>
-              <p className="text-on-surface-variant/70 dark:text-white/40 text-sm mt-1">Configura las reglas de corte y días de entrega para los pedidos.</p>
-            </div>
-          </div>
+            {expandedSection === 'entregas' ? <ChevronUp className="w-6 h-6 text-on-surface dark:text-white/70" /> : <ChevronDown className="w-6 h-6 text-on-surface dark:text-white/70" />}
+          </button>
 
-          {!isLoading && entregaConfig && (
-            <form onSubmit={handleSaveEntrega} className="space-y-8">
+          {expandedSection === 'entregas' && !isLoading && entregaConfig && (
+            <form onSubmit={handleSaveEntrega} className="space-y-8 mt-8">
               
               <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-2xl border border-gray-200 dark:border-white/10">
                 <h3 className="font-bold text-lg text-on-surface dark:text-white mb-4 flex items-center gap-2">
