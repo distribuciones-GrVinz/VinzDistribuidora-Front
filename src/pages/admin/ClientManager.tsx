@@ -151,7 +151,7 @@ export function ClientManager() {
         return (
           <>
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 mt-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 md:mb-16 mt-2 md:mt-8">
         <div>
           <h2 className="text-sm tracking-[0.3em] text-tertiary dark:text-[#e3b54a] font-bold uppercase mb-2">Comunidad</h2>
           <h1 className="text-5xl md:text-7xl font-headline-xl text-primary dark:text-white">Clientes.</h1>
@@ -187,8 +187,49 @@ export function ClientManager() {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
+        {/* Mobile List View */}
+        <div className="md:hidden flex flex-col gap-3 p-4 bg-[#fcfcfc] dark:bg-[#0a0a0a]">
+          {loading ? (
+             Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-20 bg-gray-100 dark:bg-white/5 animate-pulse rounded-2xl" />)
+          ) : currentItems.map(cliente => (
+            <button 
+              key={cliente.id}
+              onClick={() => {
+                setSelectedCliente(cliente);
+                setIsDetailsModalOpen(true);
+              }}
+              className="flex items-start gap-4 bg-white dark:bg-[#151515] p-5 rounded-2xl shadow-sm border border-outline-variant/30 dark:border-white/5 hover:border-tertiary/50 transition-colors text-left w-full"
+            >
+              <div className="w-12 h-12 rounded-full bg-primary-container/10 dark:bg-[#e3b54a]/10 flex items-center justify-center text-tertiary dark:text-[#e3b54a] font-headline-lg text-xl shrink-0 mt-0.5">
+                {cliente.nombre_comercial?.charAt(0) || 'C'}
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-on-surface dark:text-white text-base break-words leading-tight">{cliente.nombre_comercial}</p>
+                <p className="text-sm font-medium text-on-surface-variant/70 dark:text-white/40 mt-1.5">{cliente.pedidos_count || 0} pedidos</p>
+              </div>
+              <div>
+                <span className={`px-2 py-1 rounded-md text-[9px] font-bold tracking-wider uppercase border ${
+                  cliente.estado === 'Aprobado'
+                    ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20'
+                    : cliente.estado === 'Pendiente'
+                    ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
+                    : 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
+                }`}>
+                  {cliente.estado || 'Pendiente'}
+                </span>
+              </div>
+            </button>
+          ))}
+          
+          {currentItems.length === 0 && !loading && (
+            <div className="text-center py-8 text-on-surface-variant/70 dark:text-white/40">
+              No se encontraron clientes.
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="premium-table">
             <thead>
               <tr>
@@ -215,7 +256,7 @@ export function ClientManager() {
                       </div>
                       <div>
                         <p className="font-bold">{cliente.nombre_comercial}</p>
-                        <p className="text-xs text-on-surface-variant/70 dark:text-white/40">{cliente.id}</p>
+                        <p className="text-xs font-medium text-on-surface-variant/70 dark:text-white/40">{cliente.pedidos_count || 0} pedidos</p>
                       </div>
                     </div>
                   </td>
@@ -240,7 +281,7 @@ export function ClientManager() {
                     </span>
                   </td>
                   <td className="text-center">
-                    <span className="text-lg font-light"> -- </span>
+                    <span className="text-lg font-semibold">{cliente.pedidos_count || 0}</span>
                   </td>
                   <td className="text-right">
                     <div className="flex justify-end gap-2">
@@ -504,7 +545,7 @@ export function ClientManager() {
                 <div className="bg-gradient-to-r from-[#e3b54a] to-[#c9923c] px-4 py-2 mb-5 inline-block rounded-lg shadow-sm">
                   <h3 className="text-[11px] tracking-[0.2em] text-black font-extrabold uppercase">Información del Negocio</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-y-5 gap-x-4 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 sm:gap-y-5 gap-x-4 text-sm">
                   <div>
                     <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Nombre Comercial</span>
                     <span className="font-semibold text-on-surface dark:text-white">{selectedCliente.nombre_comercial}</span>
@@ -539,14 +580,14 @@ export function ClientManager() {
                 <div className="bg-gradient-to-r from-[#e3b54a] to-[#c9923c] px-4 py-2 mb-5 inline-block rounded-lg shadow-sm">
                   <h3 className="text-[11px] tracking-[0.2em] text-black font-extrabold uppercase">Información de Contacto</h3>
                 </div>
-                <div className="grid grid-cols-2 gap-y-5 gap-x-4 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 sm:gap-y-5 gap-x-4 text-sm">
                   <div>
                     <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Nombre Completo</span>
                     <span className="font-semibold text-on-surface dark:text-white">{selectedCliente.usuario_detalle?.first_name} {selectedCliente.usuario_detalle?.last_name}</span>
                   </div>
                   <div>
                     <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Correo Electrónico</span>
-                    <span className="font-semibold text-on-surface dark:text-white flex items-center gap-1"><Mail className="w-4 h-4"/> {selectedCliente.usuario_detalle?.email}</span>
+                    <span className="font-semibold text-on-surface dark:text-white flex items-center gap-1.5 break-all sm:break-words"><Mail className="w-4 h-4 shrink-0"/> {selectedCliente.usuario_detalle?.email}</span>
                   </div>
                   <div>
                     <span className="block text-on-surface-variant/70 dark:text-white/50 text-[10px] uppercase font-bold mb-1">Teléfono Principal</span>

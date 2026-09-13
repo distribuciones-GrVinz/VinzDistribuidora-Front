@@ -148,12 +148,12 @@ export function ClientLayout() {
 
           {/* Right: Notification Bell */}
           <div className="z-10 flex items-center">
-            <NotificationBell />
+            <NotificationBell forceDark={scrolled || location.pathname !== '/catalogo'} />
           </div>
         </header>
       </div>
 
-      <main className="relative z-10 flex-1 min-h-screen pb-24 pt-14 md:pr-12 md:pl-32 overflow-x-hidden">
+      <main className="relative flex-1 min-h-screen pb-24 pt-14 md:pr-12 md:pl-32 overflow-x-hidden">
         <Outlet />
       </main>
 

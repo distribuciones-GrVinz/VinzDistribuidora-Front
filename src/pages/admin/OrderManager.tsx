@@ -1,6 +1,6 @@
 import { Package, Clock, CheckCircle, ChefHat, Receipt, X } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
-import { getPedidos, updateEstadoPedido } from '../../services/adminService';
+import { getPedidos, updateEstadoPedido, updateOrderQuantities } from '../../services/adminService';
 import { ProductionSummaryModal } from '../../components/admin/ProductionSummaryModal';
 import { FacturaModal } from '../../components/admin/FacturaModal';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
@@ -15,6 +15,12 @@ export function OrderManager() {
   const [isProdModalOpen, setIsProdModalOpen] = useState(false);
   const [isFacturaModalOpen, setIsFacturaModalOpen] = useState(false);
   const [filterTab, setFilterTab] = useState<'Pendientes' | 'Transito' | 'Historial'>('Pendientes');
+  
+  // Edición de Pedido
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editDetails, setEditDetails] = useState<any[]>([]);
+  const [editMotivo, setEditMotivo] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Paginación y Filtrado
   const [currentPage, setCurrentPage] = useState(1);
@@ -98,13 +104,49 @@ export function OrderManager() {
 
   const openModal = (pedido: any) => {
     setSelectedOrder(pedido);
+    setIsEditMode(false);
+    setEditDetails(pedido.detalles ? pedido.detalles.map((d: any) => ({ ...d })) : []);
+    setEditMotivo("");
     setIsModalOpen(true);
+  };
+
+  const handleUpdateQuantities = async () => {
+    if (!editMotivo.trim()) {
+      alert("Debes escribir un motivo de modificación.");
+      return;
+    }
+    
+    // Validar cantidades
+    for (const det of editDetails) {
+      if (det.cantidad < 1) {
+        alert("Ningún producto puede tener cantidad menor a 1.");
+        return;
+      }
+      const original = selectedOrder.detalles.find((d: any) => d.id === det.id);
+      if (original && det.cantidad > original.cantidad) {
+        alert("No puedes aumentar la cantidad de un producto por encima de lo solicitado.");
+        return;
+      }
+    }
+
+    try {
+      setIsUpdating(true);
+      await updateOrderQuantities(selectedOrder.id, editDetails, editMotivo);
+      alert("Pedido actualizado correctamente.");
+      setIsModalOpen(false);
+      cargarPedidos();
+    } catch (error: any) {
+      console.error('Error actualizando pedido:', error);
+      alert(error.message || 'Ocurrió un error al actualizar.');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
     <div className="max-w-5xl mx-auto pt-2 pb-8 md:pt-4 md:pb-8 mb-20 transition-colors duration-300">
       {/* Header */}
-      <div className="mb-16 mt-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div className="mb-10 md:mb-16 mt-2 md:mt-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h2 className="text-sm tracking-[0.3em] text-tertiary dark:text-[#e3b54a] font-bold uppercase mb-2">Despacho</h2>
           <h1 className="text-5xl md:text-7xl font-headline-xl text-primary dark:text-white">Pedidos.</h1>
@@ -202,12 +244,13 @@ export function OrderManager() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between md:justify-end gap-6">
-                  <div className="text-right flex items-center gap-4">
-                    <div>
-                      <p className="text-[10px] uppercase tracking-widest text-on-surface-variant/70 dark:text-white/40 font-bold mb-1">Total</p>
-                      <p className="text-xl font-bold text-tertiary dark:text-[#e3b54a]">L {pedido.total}</p>
-                    </div>
+                <div className="flex items-center justify-between md:justify-end gap-2 sm:gap-6 mt-2 pt-4 border-t border-outline-variant/20 dark:border-white/10 md:mt-0 md:pt-0 md:border-0 w-full md:w-auto">
+                  <div className="text-left md:text-right">
+                    <p className="text-[10px] uppercase tracking-widest text-on-surface-variant/70 dark:text-white/40 font-bold mb-0.5 md:mb-1">Total</p>
+                    <p className="text-lg md:text-xl font-bold text-tertiary dark:text-[#e3b54a] whitespace-nowrap">L {pedido.total}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 md:gap-4">
                     {['En Tránsito', 'Entregado'].includes(pedido.estado) && (
                       <button
                         onClick={(e) => {
@@ -215,19 +258,19 @@ export function OrderManager() {
                           setSelectedOrder(pedido);
                           setIsFacturaModalOpen(true);
                         }}
-                        className="p-3 bg-tertiary/10 text-tertiary dark:bg-[#e3b54a]/10 dark:text-[#e3b54a] rounded-xl hover:bg-tertiary hover:text-white transition-colors"
+                        className="p-2 md:p-3 bg-tertiary/10 text-tertiary dark:bg-[#e3b54a]/10 dark:text-[#e3b54a] rounded-xl hover:bg-tertiary hover:text-white transition-colors"
                         title="Ver Factura"
                       >
-                        <Receipt className="w-5 h-5" />
+                        <Receipt className="w-5 h-5 md:w-5 md:h-5" />
                       </button>
                     )}
+                    <button 
+                      onClick={() => openModal(pedido)}
+                      className="px-5 md:px-6 py-2.5 md:py-2 bg-white dark:bg-white/5 hover:bg-tertiary hover:text-white dark:hover:bg-[#e3b54a] dark:hover:text-black text-tertiary dark:text-white font-bold rounded-full transition-all border border-outline-variant/50 dark:border-white/10 hover:border-transparent text-sm cursor-pointer shadow-sm dark:shadow-none hover:shadow-md"
+                    >
+                      Revisar
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => openModal(pedido)}
-                    className="px-6 py-2 bg-white dark:bg-white/5 hover:bg-tertiary hover:text-white dark:hover:bg-[#e3b54a] dark:hover:text-black text-tertiary dark:text-white font-bold rounded-full transition-all border border-outline-variant/50 dark:border-white/10 hover:border-transparent text-sm cursor-pointer shadow-sm dark:shadow-none hover:shadow-md"
-                  >
-                    Revisar
-                  </button>
                 </div>
               </div>
             ))}
@@ -320,7 +363,45 @@ export function OrderManager() {
 
             <div className="mb-6">
               <p className="text-xs font-bold text-on-surface-variant dark:text-white/60 uppercase tracking-wider mb-2">Detalles del Pedido</p>
-              <div className="premium-table-card mt-2">
+              {/* Mobile View */}
+              <div className="md:hidden flex flex-col divide-y divide-outline-variant/30 dark:divide-white/5 bg-white dark:bg-[#1a1a1a] rounded-xl border border-outline-variant/30 dark:border-white/5 mt-2">
+                {(isEditMode ? editDetails : selectedOrder.detalles)?.map((det: any, index: number) => (
+                  <div key={det.id} className="p-3">
+                    <p className="text-sm font-semibold text-on-surface dark:text-white break-words">
+                      {det.producto_nombre} 
+                      <span className="text-[10px] text-on-surface-variant/50 ml-1">({det.producto_sku})</span>
+                    </p>
+                    <div className="flex justify-between items-center mt-2">
+                      {isEditMode ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-on-surface-variant dark:text-white/60">Cant:</span>
+                          <input 
+                            type="number"
+                            min="1"
+                            max={selectedOrder.detalles.find((d: any) => d.id === det.id)?.cantidad || 1}
+                            value={Math.round(Number(det.cantidad))}
+                            onChange={(e) => {
+                              const newDetails = [...editDetails];
+                              newDetails[index].cantidad = Number(e.target.value);
+                              setEditDetails(newDetails);
+                            }}
+                            className="w-16 bg-surface dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-md py-1 px-2 text-sm text-center text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]"
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-xs text-on-surface-variant dark:text-white/60">Cant: <span className="font-bold">{Math.round(Number(det.cantidad))}</span></span>
+                      )}
+                      <span className="text-sm font-bold text-primary dark:text-white">L {isEditMode ? (det.cantidad * (det.subtotal / (selectedOrder.detalles.find((d:any) => d.id === det.id)?.cantidad || 1))).toFixed(2) : det.subtotal}</span>
+                    </div>
+                  </div>
+                ))}
+                {(!selectedOrder.detalles || selectedOrder.detalles.length === 0) && (
+                  <div className="p-6 text-center text-sm opacity-50">Sin detalles.</div>
+                )}
+              </div>
+
+              {/* Desktop View */}
+              <div className="hidden md:block premium-table-card mt-2">
                 <table className="premium-table">
                   <thead>
                     <tr>
@@ -330,11 +411,28 @@ export function OrderManager() {
                     </tr>
                   </thead>
                   <tbody>
-                    {selectedOrder.detalles?.map((det: any) => (
+                    {(isEditMode ? editDetails : selectedOrder.detalles)?.map((det: any, index: number) => (
                       <tr key={det.id}>
                         <td>{det.producto_nombre} <span className="text-[10px] text-on-surface-variant/50 ml-2">({det.producto_sku})</span></td>
-                        <td className="text-center font-bold">{Math.round(Number(det.cantidad))}</td>
-                        <td className="text-right">L {det.subtotal}</td>
+                        <td className="text-center font-bold">
+                          {isEditMode ? (
+                            <input 
+                              type="number"
+                              min="1"
+                              max={selectedOrder.detalles.find((d: any) => d.id === det.id)?.cantidad || 1}
+                              value={Math.round(Number(det.cantidad))}
+                              onChange={(e) => {
+                                const newDetails = [...editDetails];
+                                newDetails[index].cantidad = Number(e.target.value);
+                                setEditDetails(newDetails);
+                              }}
+                              className="w-20 mx-auto bg-surface dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-lg py-1.5 px-2 text-sm text-center text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]"
+                            />
+                          ) : (
+                            Math.round(Number(det.cantidad))
+                          )}
+                        </td>
+                        <td className="text-right">L {isEditMode ? (det.cantidad * (det.subtotal / (selectedOrder.detalles.find((d:any) => d.id === det.id)?.cantidad || 1))).toFixed(2) : det.subtotal}</td>
                       </tr>
                     ))}
                     {(!selectedOrder.detalles || selectedOrder.detalles.length === 0) && (
@@ -343,6 +441,47 @@ export function OrderManager() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Controles de Edición */}
+              {isEditMode && (
+                <div className="mt-4 p-4 bg-primary-container/10 dark:bg-[#e3b54a]/5 rounded-xl border border-primary-container/20 dark:border-[#e3b54a]/20">
+                  <label className="block text-[10px] font-semibold mb-2 text-primary dark:text-[#e3b54a] uppercase">Motivo de la Modificación *</label>
+                  <textarea 
+                    value={editMotivo}
+                    onChange={(e) => setEditMotivo(e.target.value)}
+                    placeholder="Ej. Falta de stock en bodega, solo se entregan 5 unidades..."
+                    className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-2 px-3 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a] resize-none h-20 mb-3"
+                  />
+                  <div className="flex justify-end gap-3">
+                    <button 
+                      onClick={() => setIsEditMode(false)}
+                      disabled={isUpdating}
+                      className="px-4 py-2 rounded-lg font-bold text-sm text-on-surface-variant hover:bg-outline-variant/20 dark:text-white/60 dark:hover:bg-white/10 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      onClick={handleUpdateQuantities}
+                      disabled={isUpdating}
+                      className="px-4 py-2 rounded-lg font-bold text-sm bg-primary text-white hover:bg-tertiary dark:bg-[#e3b54a] dark:text-black dark:hover:bg-white transition-colors flex items-center gap-2"
+                    >
+                      {isUpdating ? 'Guardando...' : 'Guardar Cambios'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Botón Activar Edición */}
+              {!isEditMode && ['Pendiente', 'Elaborado'].includes(selectedOrder.estado) && selectedOrder.detalles?.length > 0 && (
+                <div className="mt-4 flex justify-end">
+                  <button 
+                    onClick={() => setIsEditMode(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-surface-variant/30 hover:bg-surface-variant/50 dark:bg-white/5 dark:hover:bg-white/10 text-on-surface dark:text-white font-bold rounded-lg transition-colors text-sm border border-outline-variant/50 dark:border-white/10"
+                  >
+                    Modificar Cantidades
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="mb-6">

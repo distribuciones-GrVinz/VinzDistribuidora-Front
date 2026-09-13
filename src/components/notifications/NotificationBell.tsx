@@ -10,7 +10,7 @@ const ICONS = {
   warning: <AlertTriangle className="w-5 h-5 text-yellow-500" />
 };
 
-export function NotificationBell() {
+export function NotificationBell({ forceDark = false }: { forceDark?: boolean }) {
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearHistory } = useNotification();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -30,10 +30,16 @@ export function NotificationBell() {
     <div className="relative z-[9900]" ref={dropdownRef}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2.5 rounded-full border border-[#3D2B1F]/30 hover:border-[#3D2B1F]/60 transition-all"
-        style={{ background: 'rgba(61,43,31,0.1)' }}
+        className={`relative p-2.5 rounded-full border transition-all ${
+          forceDark 
+            ? 'border-[#3D2B1F]/30 hover:border-[#3D2B1F]/60 bg-[#3D2B1F]/10' 
+            : 'border-black/10 dark:border-white/20 hover:border-black/30 dark:hover:border-white/40 bg-white/60 dark:bg-black/40 backdrop-blur-md shadow-sm'
+        }`}
       >
-        <Bell className="w-5 h-5" strokeWidth={2.5} style={{ color: '#1C1008' }} />
+        <Bell 
+          className={`w-5 h-5 ${forceDark ? 'text-[#1C1008]' : 'text-black dark:text-white'}`} 
+          strokeWidth={2.5} 
+        />
         
         {unreadCount > 0 && (
           <div className="absolute top-0 right-0 bg-red-500 text-white text-[9px] font-bold h-4 min-w-[16px] flex items-center justify-center rounded-full px-1 shadow-sm shadow-red-500/50 border-2 border-white dark:border-[#1a1a1a]">

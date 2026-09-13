@@ -1,16 +1,18 @@
-import { Outlet } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { AdminNavBar } from '../components/admin/AdminNavBar';
 import { NotificationBell } from '../components/notifications/NotificationBell';
 
 export function AdminLayout() {
-  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const getPageTitle = () => {
+    const path = location.pathname.toLowerCase();
+    if (path.includes('/productos')) return 'Productos';
+    if (path.includes('/clientes')) return 'Clientes';
+    if (path.includes('/pedidos')) return 'Pedidos';
+    if (path.includes('/configuracion')) return 'Configuración';
+    return 'Backstage';
+  };
 
   return (
     <div className="min-h-screen bg-surface text-on-surface dark:bg-[#050505] dark:text-white font-sans overflow-x-hidden selection:bg-primary-container selection:text-white transition-colors duration-300 relative">
@@ -42,14 +44,7 @@ export function AdminLayout() {
 
           {/* Center: Brand name perfectly centered */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <div
-              className="leading-none text-center"
-              style={{
-                opacity: scrolled ? 1 : 0,
-                transform: scrolled ? 'translateY(0)' : 'translateY(15px)',
-                transition: 'opacity 0.8s ease-out, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)',
-              }}
-            >
+            <div className="leading-none text-center">
               <span
                 className="font-bold text-[16px] uppercase whitespace-nowrap block"
                 style={{ color: '#1C1008', letterSpacing: '0.1em' }}
@@ -59,20 +54,20 @@ export function AdminLayout() {
                 {' '}Tasty
               </span>
               <span className="block text-[10px] uppercase whitespace-nowrap" style={{ color: '#3D2B1F', letterSpacing: '0.3em' }}>
-                Backstage
+                {getPageTitle()}
               </span>
             </div>
           </div>
 
           {/* Right: Notification Bell */}
           <div className="z-10 flex items-center">
-            <NotificationBell />
+            <NotificationBell forceDark />
           </div>
         </header>
       </div>
 
       {/* Contenido dinámico */}
-      <main className="relative z-10 min-h-screen pb-32 pt-20 md:pt-4 px-4 md:pr-12 md:pl-32">
+      <main className="relative min-h-screen pb-32 pt-20 md:pt-4 px-4 md:pr-12 md:pl-32">
         <Outlet />
       </main>
 

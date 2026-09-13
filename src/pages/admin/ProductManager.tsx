@@ -246,15 +246,15 @@ export function ProductManager() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-8">
           {Array.from({ length: 8 }).map((_, i) => (
             <AdminProductCardSkeleton key={i} />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-8">
           {filteredProducts.map(prod => (
-            <div key={prod.id} className={`group relative bg-white dark:bg-[#0f0f0f] border border-outline-variant/80 dark:border-white/5 rounded-2xl overflow-hidden hover:border-tertiary/60 dark:hover:border-[#e3b54a]/50 transition-all duration-500 shadow-md hover:shadow-xl dark:shadow-none ${prod.estado === false ? 'opacity-60 grayscale' : ''}`}>
+            <div key={prod.id} className={`group relative bg-white dark:bg-[#0f0f0f] border border-outline-variant/80 dark:border-white/5 rounded-xl md:rounded-2xl overflow-hidden hover:border-tertiary/60 dark:hover:border-[#e3b54a]/50 transition-all duration-500 shadow-md hover:shadow-xl dark:shadow-none ${prod.estado === false ? 'opacity-60 grayscale' : ''}`}>
               
               <button
                 onClick={(e) => handleToggleEstado(prod, e)}
@@ -269,32 +269,38 @@ export function ProductManager() {
               </button>
 
               {/* Product Image Placeholder */}
-              <div className="aspect-[4/5] bg-[#f5f1e6] dark:bg-[#1a1a1a] p-8 flex items-center justify-center relative overflow-hidden">
+              <div className="aspect-square bg-[#f5f1e6] dark:bg-[#1a1a1a] p-4 md:p-8 flex items-center justify-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/5 dark:from-[#0f0f0f] to-transparent z-10"></div>
                 
                 {/* Simulated product photo area */}
                 <div className="w-3/4 h-3/4 bg-white/40 dark:bg-[#e3b54a]/10 rounded-full blur-2xl absolute"></div>
                 <img 
-                  src={prod.imagen_url ? prod.imagen_url : "/sweet_logo.jpg"} 
+                  src={prod.imagen_url && prod.imagen_url !== "null" ? prod.imagen_url : "/sweet_logo.jpg"} 
                   alt={prod.nombre} 
-                  className={`w-40 relative z-20 drop-shadow-md ${prod.imagen_url ? 'object-contain h-full' : 'opacity-60 dark:opacity-30 mix-blend-multiply dark:mix-blend-screen dark:grayscale'}`}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = "/sweet_logo.jpg";
+                    target.className = "w-24 md:w-40 relative z-20 drop-shadow-md opacity-60 dark:opacity-30 mix-blend-multiply dark:mix-blend-screen dark:grayscale";
+                  }}
+                  className={`w-24 md:w-40 relative z-20 drop-shadow-md ${prod.imagen_url && prod.imagen_url !== "null" ? 'object-contain h-full' : 'opacity-60 dark:opacity-30 mix-blend-multiply dark:mix-blend-screen dark:grayscale'}`}
                 />
                 
                 {/* Hover Action */}
-                <button onClick={() => handleEdit(prod)} className="absolute top-4 right-4 z-30 bg-white/80 dark:bg-black/50 backdrop-blur-md p-3 rounded-full text-tertiary dark:text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-tertiary hover:text-white dark:hover:bg-[#e3b54a] dark:hover:text-black shadow-md dark:shadow-none">
-                  <Edit2 className="w-4 h-4" />
+                <button onClick={() => handleEdit(prod)} className="absolute top-2 right-2 md:top-4 md:right-4 z-30 bg-white/80 dark:bg-black/50 backdrop-blur-md p-2 md:p-3 rounded-full text-tertiary dark:text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-tertiary hover:text-white dark:hover:bg-[#e3b54a] dark:hover:text-black shadow-md dark:shadow-none">
+                  <Edit2 className="w-3 h-3 md:w-4 md:h-4" />
                 </button>
               </div>
 
-              <div className="p-6 relative z-20 bg-white dark:bg-transparent -mt-2 rounded-t-2xl shadow-[0_-10px_20px_rgba(0,0,0,0.02)] dark:shadow-none border-t border-outline-variant/30 dark:border-transparent pt-4">
-                <div className="flex justify-between items-end mb-3">
-                  <span className="text-[10px] tracking-widest uppercase text-tertiary dark:text-[#e3b54a] font-bold bg-surface dark:bg-[#0f0f0f] px-3 py-1.5 rounded-full border border-outline-variant/50 dark:border-white/5">
+              <div className="p-3 md:p-6 relative z-20 bg-white dark:bg-transparent -mt-2 rounded-t-xl md:rounded-t-2xl shadow-[0_-10px_20px_rgba(0,0,0,0.02)] dark:shadow-none border-t border-outline-variant/30 dark:border-transparent pt-3 md:pt-4">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-2 md:mb-3 gap-1 md:gap-0">
+                  <span className="text-[8px] md:text-[10px] tracking-widest uppercase text-tertiary dark:text-[#e3b54a] font-bold bg-surface dark:bg-[#0f0f0f] px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-outline-variant/50 dark:border-white/5 line-clamp-1">
                     {prod.categoria_nombre}
                   </span>
-                  <span className="text-xl font-bold text-primary dark:text-white">L {prod.precio_unitario}</span>
+                  <span className="text-sm md:text-xl font-bold text-primary dark:text-white">L {prod.precio_unitario}</span>
                 </div>
-                <h3 className="text-2xl font-headline-lg text-primary dark:text-white mb-2 line-clamp-1 group-hover:text-tertiary dark:group-hover:text-[#e3b54a] transition-colors">{prod.nombre}</h3>
-                <p className="text-on-surface-variant/80 dark:text-white/40 text-sm line-clamp-2 leading-relaxed">{prod.descripcion}</p>
+                <h3 className="text-sm md:text-2xl font-headline-lg text-primary dark:text-white mb-1 md:mb-2 line-clamp-2 md:line-clamp-1 group-hover:text-tertiary dark:group-hover:text-[#e3b54a] transition-colors">{prod.nombre}</h3>
+                <p className="text-on-surface-variant/80 dark:text-white/40 text-[10px] md:text-sm line-clamp-2 md:line-clamp-2 leading-relaxed">{prod.descripcion}</p>
               </div>
             </div>
           ))}

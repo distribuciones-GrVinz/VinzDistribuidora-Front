@@ -208,9 +208,9 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full items-start">
               
-              {/* Columna Izquierda: Tarjetas por Cliente */}
-              <div className="lg:col-span-7 xl:col-span-7 space-y-6 min-w-0 w-full overflow-hidden">
-                <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant/50 dark:text-white/30 mb-2 truncate">Desglose por Tienda</h3>
+              {/* Columna Izquierda: Tarjetas por Cliente (Abajo en móvil, Izquierda en desktop) */}
+              <div className="lg:col-span-7 xl:col-span-7 space-y-6 min-w-0 w-full overflow-hidden order-2 lg:order-1 mt-6 lg:mt-0">
+                <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant/50 dark:text-white/30 mb-2 truncate pl-2 border-l-4 border-tertiary dark:border-[#e3b54a]">Desglose por Tienda</h3>
                 {clients.map((client, idx) => {
                   const allCompleted = client.productos.every(p => completedItems.has(`${client.cliente_nombre}-${p.producto_nombre}`));
                   
@@ -255,48 +255,48 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
 
                     {/* Detalle Desplegado Automáticamente */}
                     {expandedClients.has(client.cliente_nombre) && (
-                    <div className={`px-4 pb-4 pt-2 overflow-x-auto transition-colors animate-in fade-in slide-in-from-top-2 ${allCompleted ? 'bg-emerald-50/30 dark:bg-[#151515]' : 'bg-white dark:bg-[#151515]'}`}>
-                      <div className="premium-table-card mt-2">
-                        <table className="premium-table text-sm">
-                          <thead>
-                            <tr>
-                              <th className="w-10">
+                    <div className={`px-4 pb-4 pt-2 transition-colors animate-in fade-in slide-in-from-top-2 ${allCompleted ? 'bg-emerald-50/30 dark:bg-[#151515]' : 'bg-white dark:bg-[#151515]'}`}>
+                      <div className="space-y-2 mt-2">
+                        {/* Cabecera de la lista */}
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-outline-variant/30 dark:border-white/10 px-2">
+                          <div className="flex items-center gap-3">
+                            <button 
+                              onClick={() => toggleAllClientItems(client.cliente_nombre, client.productos)}
+                              className={`transition-opacity flex items-center justify-center hover:opacity-70 ${allCompleted ? 'text-emerald-500' : 'text-tertiary dark:text-[#e3b54a]'}`}
+                              title={allCompleted ? "Desmarcar todos" : "Marcar todos"}
+                            >
+                              {allCompleted ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+                            </button>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70 dark:text-white/40">Producto</span>
+                          </div>
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70 dark:text-white/40">Cant.</span>
+                        </div>
+                        
+                        {/* Lista de productos */}
+                        {client.productos.map((prod, pIdx) => {
+                          const isCompleted = completedItems.has(`${client.cliente_nombre}-${prod.producto_nombre}`);
+                          return (
+                            <div 
+                              key={pIdx}
+                              onClick={() => toggleItem(client.cliente_nombre, prod.producto_nombre, client.productos)}
+                              className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-300 border ${isCompleted ? 'bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/20 opacity-70' : 'bg-surface/50 dark:bg-white/5 border-transparent hover:border-outline-variant/30 dark:hover:border-white/10 hover:bg-surface-variant dark:hover:bg-white/10'}`}
+                            >
+                              <div className="flex items-center gap-3 min-w-0 pr-4">
                                 <button 
-                                  onClick={() => toggleAllClientItems(client.cliente_nombre, client.productos)}
-                                  className={`transition-opacity flex items-center justify-center hover:opacity-70 ${allCompleted ? 'text-white dark:text-emerald-400' : 'text-white dark:text-[#e3b54a]'}`}
-                                  title={allCompleted ? "Desmarcar todos" : "Marcar todos"}
+                                  className={`shrink-0 transition-colors ${isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-tertiary dark:text-[#e3b54a]'}`}
                                 >
-                                  {allCompleted ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
+                                  {isCompleted ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
                                 </button>
-                              </th>
-                              <th>Producto</th>
-                              <th className="text-right">Cantidad</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {client.productos.map((prod, pIdx) => {
-                              const isCompleted = completedItems.has(`${client.cliente_nombre}-${prod.producto_nombre}`);
-                              return (
-                                <tr key={pIdx} className={`${isCompleted ? 'opacity-40 bg-emerald-50/50 dark:bg-emerald-900/10 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/20' : ''}`}>
-                                  <td>
-                                    <button 
-                                      onClick={() => toggleItem(client.cliente_nombre, prod.producto_nombre, client.productos)}
-                                      className={`hover:opacity-70 transition-opacity flex items-center justify-center ${isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-tertiary dark:text-[#e3b54a]'}`}
-                                    >
-                                      {isCompleted ? <CheckSquare className="w-5 h-5" /> : <Square className="w-5 h-5" />}
-                                    </button>
-                                  </td>
-                                  <td className={`${isCompleted ? 'line-through' : ''}`}>{prod.producto_nombre}</td>
-                                  <td className="text-right">
-                                    <span className={`inline-flex items-center justify-center font-bold px-3 py-1 rounded-lg transition-colors duration-300 ${isCompleted ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-tertiary/10 text-tertiary dark:bg-[#e3b54a]/10 dark:text-[#e3b54a]'}`}>
-                                      {prod.cantidad}
-                                    </span>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
+                                <span className={`text-sm truncate transition-colors ${isCompleted ? 'line-through text-on-surface-variant/70 dark:text-white/50' : 'text-on-surface dark:text-white font-medium'}`}>
+                                  {prod.producto_nombre}
+                                </span>
+                              </div>
+                              <span className={`shrink-0 inline-flex items-center justify-center font-bold px-3 py-1 rounded-lg transition-colors duration-300 text-sm ${isCompleted ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-tertiary/10 text-tertiary dark:bg-[#e3b54a]/10 dark:text-[#e3b54a]'}`}>
+                                {prod.cantidad}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                       
                       {/* Mostrar Notas si existen */}
@@ -319,43 +319,54 @@ export function ProductionSummaryModal({ isOpen, onClose, pedidos, onOrdersUpdat
                 )})}
               </div>
 
-              {/* Columna Derecha: Total Global (Sticky si es posible) */}
-              <div className="lg:col-span-5 xl:col-span-5 min-w-0 w-full shrink-0">
-                <div className="bg-primary-container dark:bg-[#111] border border-primary-container/50 dark:border-[#e3b54a]/20 rounded-3xl p-5 md:p-6 lg:sticky lg:top-0 shadow-lg dark:shadow-none overflow-hidden transition-all duration-500">
-                  <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary dark:text-[#e3b54a] mb-5 truncate">Total a Producir (Global)</h3>
+              {/* Columna Derecha: Total Global (Arriba en móvil, Derecha en desktop) */}
+              <div className="lg:col-span-5 xl:col-span-5 min-w-0 w-full shrink-0 order-1 lg:order-2">
+                <div className="bg-gradient-to-br from-surface to-surface-variant dark:from-[#151515] dark:to-[#0f0f0f] border border-tertiary/30 dark:border-[#e3b54a]/20 rounded-3xl p-6 md:p-8 lg:sticky lg:top-0 shadow-[0_15px_40px_rgba(200,159,83,0.1)] dark:shadow-[0_15px_40px_rgba(227,181,74,0.05)] overflow-hidden transition-all duration-500 relative group">
+                  {/* Decoración de fondo */}
+                  <div className="absolute -top-24 -right-24 w-48 h-48 bg-tertiary/10 dark:bg-[#e3b54a]/5 rounded-full blur-3xl group-hover:bg-tertiary/20 transition-all duration-700 pointer-events-none"></div>
                   
-                  <div className="space-y-3">
+                  <div className="relative z-10 flex items-center justify-between mb-8 border-b border-outline-variant/30 dark:border-white/10 pb-4">
+                    <h3 className="text-[13px] md:text-sm font-black uppercase tracking-[0.25em] text-on-surface dark:text-white flex items-center gap-3">
+                      <ChefHat className="w-5 h-5 text-tertiary dark:text-[#e3b54a]" />
+                      Producción Global
+                    </h3>
+                  </div>
+                  
+                  <div className="relative z-10 space-y-4">
                     {global.map((g, idx) => (
-                      <div key={idx} className={`flex items-center justify-between border-b border-primary/10 dark:border-white/10 pb-3 last:border-0 last:pb-0 gap-3 transition-all duration-500 ${g.remaining === 0 ? 'opacity-30 grayscale' : ''}`}>
-                        <span className={`text-sm text-on-surface dark:text-white/90 font-medium truncate transition-all duration-500 ${g.remaining === 0 ? 'line-through' : ''}`}>{g.name}</span>
+                      <div key={idx} className={`flex items-center justify-between p-3.5 rounded-2xl transition-all duration-500 ${g.remaining === 0 ? 'opacity-40 grayscale bg-emerald-50/50 dark:bg-emerald-900/10' : 'bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 border border-transparent hover:border-tertiary/20 dark:hover:border-[#e3b54a]/20 shadow-sm'}`}>
+                        <span className={`text-sm md:text-base font-semibold truncate transition-all duration-500 mr-4 ${g.remaining === 0 ? 'line-through text-on-surface-variant/70 dark:text-white/50' : 'text-on-surface dark:text-white/90'}`}>
+                          {g.name}
+                        </span>
                         
-                        <div className="flex flex-col items-end shrink-0">
-                          <span className={`font-bold text-lg transition-colors duration-500 ${g.remaining === 0 ? 'text-on-surface-variant dark:text-white/50' : 'text-primary dark:text-white'}`}>
-                            {g.remaining}
-                          </span>
-                          {/* Pequeño indicador de completados si hay algunos */}
+                        <div className="flex items-center gap-3 shrink-0">
                           {g.completed > 0 && g.remaining > 0 && (
-                            <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 mt-1">
+                            <span className="text-[11px] font-bold px-2.5 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 rounded-lg">
                               {g.completed} listos
                             </span>
                           )}
+                          <span className={`w-11 h-11 flex items-center justify-center rounded-xl font-bold text-lg shadow-sm ${g.remaining === 0 ? 'bg-transparent text-emerald-600 dark:text-emerald-500' : 'bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black'}`}>
+                            {g.remaining === 0 ? <CheckSquare className="w-6 h-6" /> : g.remaining}
+                          </span>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="mt-6 pt-5 border-t border-primary/20 dark:border-white/10">
-                    <p className="text-[10px] uppercase tracking-widest text-on-surface-variant/70 dark:text-white/40 font-bold mb-1 truncate">Unidades Restantes</p>
-                    <p className="text-4xl font-headline-xl text-primary dark:text-[#e3b54a] truncate transition-all duration-500">
-                      {global.reduce((acc, curr) => acc + curr.remaining, 0)}
-                    </p>
-                    
-                    {global.reduce((acc, curr) => acc + curr.completed, 0) > 0 && (
-                       <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-3 flex items-center gap-2">
-                         <CheckSquare className="w-4 h-4" />
-                         {global.reduce((acc, curr) => acc + curr.completed, 0)} unidades elaboradas
-                       </p>
-                    )}
+                  <div className="relative z-10 mt-8 pt-6 border-t border-outline-variant/30 dark:border-white/10">
+                    <div className="bg-primary-container/30 dark:bg-[#e3b54a]/10 rounded-2xl p-6 border border-primary-container/50 dark:border-[#e3b54a]/20 flex flex-col items-center justify-center text-center relative overflow-hidden transition-all duration-500 hover:bg-primary-container/40 dark:hover:bg-[#e3b54a]/15">
+                      <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-on-surface-variant/80 dark:text-white/50 font-bold mb-2 z-10">Total Restante</p>
+                      <p className="text-5xl md:text-6xl font-headline-xl text-primary dark:text-[#e3b54a] z-10">
+                        {global.reduce((acc, curr) => acc + curr.remaining, 0)}
+                      </p>
+                      
+                      {global.reduce((acc, curr) => acc + curr.completed, 0) > 0 && (
+                         <div className="mt-4 inline-flex items-center gap-2 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-full text-xs font-bold shadow-sm z-10">
+                           <PackageCheck className="w-4 h-4" />
+                           {global.reduce((acc, curr) => acc + curr.completed, 0)} completados
+                         </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

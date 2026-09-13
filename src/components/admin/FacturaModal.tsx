@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { X, Printer, CheckCircle, Download, Loader2 } from 'lucide-react';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import { X, Printer, CheckCircle } from 'lucide-react';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
 import { ScrollProgressIndicator } from '../ui/ScrollProgressIndicator';
 import { getSARConfig } from '../../services/adminService';
@@ -72,12 +70,12 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
   useLockBodyScroll(isOpen);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [sarConfig, setSarConfig] = useState<any>(null);
-  const [isExporting, setIsExporting] = useState(false);
   
   // Editable fields for the invoice (Client)
   const [clienteNombre, setClienteNombre] = useState('');
   const [clienteDireccion, setClienteDireccion] = useState('');
   const [clienteRTN, setClienteRTN] = useState('');
+  const [clienteRazonSocial, setClienteRazonSocial] = useState('');
 
   // Editable fields for the invoice (Company)
   const [empresaNombre, setEmpresaNombre] = useState('Sweet & Tasty');
@@ -101,6 +99,42 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
     return local.toISOString().split('T')[0];
   });
 
+  const [scale, setScale] = useState(1);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState(0);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    let observer: ResizeObserver | null = null;
+    
+    const updateScale = () => {
+      const w = window.innerWidth;
+      const newScale = w < 850 ? (w - 32) / 816 : 1;
+      setScale(newScale);
+      
+      const el = document.getElementById('factura-content');
+      if (el) {
+        setContentHeight(el.offsetHeight);
+      }
+    };
+    
+    setTimeout(() => {
+      updateScale();
+      const el = document.getElementById('factura-content');
+      if (el) {
+        observer = new ResizeObserver(() => updateScale());
+        observer.observe(el);
+      }
+    }, 50);
+    
+    window.addEventListener('resize', updateScale);
+    return () => {
+      if (observer) observer.disconnect();
+      window.removeEventListener('resize', updateScale);
+    };
+  }, [isOpen, pedido]);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -108,6 +142,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
         setClienteNombre(pedido.cliente_nombre || '');
         setClienteDireccion(pedido.cliente_direccion || '');
         setClienteRTN(pedido.cliente_rtn || '');
+        setClienteRazonSocial(pedido.cliente_razon_social || '');
         setCondicionPago('CONTADO'); // Default
         
         const now = new Date();
@@ -230,6 +265,10 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                 page-break-before: always !important;
                 break-before: page !important;
               }
+              .invoice-wrapper {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+              }
               .copy-label {
                 text-align: right;
                 font-weight: 900;
@@ -267,12 +306,12 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
           </style>
         </head>
         <body class="bg-white text-black p-0 m-0 relative">
-          <div style="padding: 0.5cm 1.5cm 1cm 1.5cm; position: relative; z-index: 1;">
+          <div class="invoice-wrapper" style="padding: 0.5cm 1.5cm 1cm 1.5cm; position: relative; z-index: 1;">
             <div class="copy-label">ORIGINAL: CLIENTE</div>
             ${printContent.outerHTML}
           </div>
           <div class="page-break"></div>
-          <div style="padding: 0.5cm 1.5cm 1cm 1.5cm; position: relative; z-index: 1;">
+          <div class="invoice-wrapper" style="padding: 0.5cm 1.5cm 1cm 1.5cm; position: relative; z-index: 1;">
             <div class="copy-label">COPIA: EMISOR</div>
             ${printContent.outerHTML}
           </div>
@@ -308,86 +347,6 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
     }
   };
 
-  const handleExportPDF = async () => {
-    const source = document.getElementById('factura-content');
-    if (!source || !pedido) return;
-
-    try {
-      setIsExporting(true);
-
-      // Obtener fuentes embebidas en base64
-      const embeddedFonts = await embedGoogleFonts();
-
-      // --- Actualizar campos editables antes de clonar ---
-      source.querySelectorAll('input[type="text"], input[type="date"], textarea').forEach(el => {
-        if (el instanceof HTMLInputElement) {
-          el.setAttribute('value', el.value);
-          el.removeAttribute('placeholder'); // Prevenir que html2canvas imprima el placeholder
-        }
-        if (el instanceof HTMLTextAreaElement) {
-          el.textContent = el.value;
-          el.removeAttribute('placeholder');
-        }
-      });
-
-      // --- Clonar el nodo FUERA del modal para que html2canvas lo vea limpio ---
-      const clone = source.cloneNode(true) as HTMLElement;
-      clone.style.position = 'fixed';
-      clone.style.top = '-9999px';
-      clone.style.left = '-9999px';
-      clone.style.width = source.offsetWidth + 'px';
-      clone.style.boxShadow = 'none';
-      clone.style.borderRadius = '0';
-      clone.style.overflow = 'visible';
-      clone.style.zIndex = '-1';
-      clone.querySelectorAll('.print-hidden').forEach(el => {
-        (el as HTMLElement).style.display = 'none';
-      });
-
-      // Inyectar fuentes inline en el clon para que html2canvas las renderice
-      if (embeddedFonts) {
-        const fontStyle = document.createElement('div');
-        fontStyle.innerHTML = embeddedFonts;
-        const styleEl = fontStyle.firstChild as HTMLStyleElement;
-        if (styleEl) clone.insertBefore(styleEl, clone.firstChild);
-      }
-
-      document.body.appendChild(clone);
-
-      // Esperar fuentes + renderizado
-      await document.fonts.ready;
-      await new Promise(r => setTimeout(r, 400));
-
-      const canvas = await html2canvas(clone, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: clone.offsetWidth,
-        height: clone.offsetHeight,
-      });
-
-      document.body.removeChild(clone);
-
-      // --- Generar PDF tamaño carta ---
-      const imgData = canvas.toDataURL('image/jpeg', 0.98);
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
-      const pdfW = pdf.internal.pageSize.getWidth();
-      const pdfH = pdf.internal.pageSize.getHeight();
-      const margin = 5; // Reducido para usar mejor el espacio
-      const usableW = pdfW - margin * 2;
-      const imgH = (canvas.height * usableW) / canvas.width;
-      const finalH = imgH > pdfH - margin * 2 ? pdfH - margin * 2 : imgH;
-      const finalW = (canvas.width * finalH) / canvas.height;
-      pdf.addImage(imgData, 'JPEG', margin, margin, finalW, finalH);
-      pdf.save(`Factura-${pedido.id.split('-')[0].toUpperCase()}.pdf`);
-    } catch (error) {
-      console.error('Error al exportar PDF:', error);
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   if (!isOpen || !pedido) return null;
 
@@ -417,52 +376,51 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md transition-opacity">
       <div className="bg-surface dark:bg-[#111] w-full max-w-4xl max-h-[95vh] rounded-3xl shadow-2xl border border-outline-variant/30 dark:border-white/10 flex flex-col overflow-hidden relative">
-        {/* Header no imprimible */}
-        <div className="p-4 border-b border-outline-variant/30 dark:border-white/10 flex items-center justify-between bg-white dark:bg-[#151515]">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="w-6 h-6 text-[#e3b54a]" />
-            <h2 className="text-xl font-bold text-on-surface dark:text-white">Impresión de Factura SAR</h2>
+        {/* Header no imprimible responsivo */}
+        <div className="p-3 md:p-4 border-b border-outline-variant/30 dark:border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white dark:bg-[#151515] shrink-0">
+          
+          <div className="flex items-center justify-between w-full md:w-auto">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 md:w-6 md:h-6 text-[#e3b54a]" />
+              <h2 className="text-lg md:text-xl font-bold text-on-surface dark:text-white line-clamp-1">Factura SAR</h2>
+            </div>
+            {/* Botón de cierre en Móvil */}
+            <button 
+              onClick={onClose}
+              className="md:hidden p-1.5 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-full transition-all duration-300 hover:rotate-90 shrink-0 ml-2"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <div className="flex gap-3">
+
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             {/* Controles de interfaz */}
-            <div className="flex items-center gap-2 bg-[#fcf8ef] dark:bg-[#2a2415] px-3 py-1.5 rounded-lg border border-[#e3b54a]/30">
-              <span className="text-sm font-bold text-[#8c6d23] dark:text-[#e3b54a]/80">Pago:</span>
+            <div className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#fcf8ef] dark:bg-[#2a2415] px-3 py-1.5 rounded-lg border border-[#e3b54a]/30">
+              <span className="text-xs md:text-sm font-bold text-[#8c6d23] dark:text-[#e3b54a]/80">Pago:</span>
               <select 
                 value={condicionPago} 
                 onChange={(e) => setCondicionPago(e.target.value)}
-                className="bg-transparent border-none focus:ring-0 text-sm cursor-pointer font-bold text-[#a6822c] dark:text-[#e3b54a] outline-none"
+                className="bg-transparent border-none focus:ring-0 text-xs md:text-sm cursor-pointer font-bold text-[#a6822c] dark:text-[#e3b54a] outline-none"
               >
                 <option value="CONTADO">CONTADO</option>
                 <option value="CRÉDITO">CRÉDITO</option>
               </select>
             </div>
 
-            {/* Grupo de botones Imprimir/Exportar */}
-            <div className="flex bg-tertiary dark:bg-[#e3b54a] rounded-xl border border-tertiary/20 dark:border-[#e3b54a]/20 p-0.5 overflow-hidden shadow-sm">
-              <button 
-                onClick={handlePrint}
-                disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-1.5 bg-tertiary hover:bg-tertiary/90 text-white dark:bg-[#e3b54a] dark:hover:bg-[#d4a845] dark:text-black font-bold rounded-lg transition-colors text-sm disabled:opacity-50"
-                title="Imprimir Factura"
-              >
-                <Printer className="w-4 h-4" />
-                <span className="hidden md:inline">Imprimir</span>
-              </button>
-              <div className="w-[1px] bg-white/20 dark:bg-black/10 mx-0.5 my-1" />
-              <button 
-                onClick={handleExportPDF}
-                disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-1.5 bg-tertiary hover:bg-tertiary/90 text-white dark:bg-[#e3b54a] dark:hover:bg-[#d4a845] dark:text-black font-bold rounded-lg transition-colors text-sm disabled:opacity-50"
-                title="Descargar PDF"
-              >
-                {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                <span className="hidden md:inline">PDF</span>
-              </button>
-            </div>
+            {/* Botón Imprimir / PDF (Nativo) */}
+            <button 
+              onClick={handlePrint}
+              className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-tertiary dark:bg-[#e3b54a] hover:bg-tertiary-container dark:hover:bg-white text-white dark:text-black font-bold rounded-lg transition-colors text-xs md:text-sm shadow-sm"
+              title="Imprimir o Guardar como PDF"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Imprimir / PDF</span>
+            </button>
 
+            {/* Botón de cierre en Escritorio */}
             <button 
               onClick={onClose}
-              className="p-2 ml-2 rounded-full hover:bg-outline-variant/20 dark:hover:bg-white/10 text-on-surface-variant dark:text-white/60 transition-colors"
+              className="hidden md:flex p-1.5 ml-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-full transition-all duration-300 hover:rotate-90 shrink-0"
             >
               <X className="w-5 h-5" />
             </button>
@@ -472,9 +430,32 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
         {/* Preview Container */}
         <div 
           ref={scrollRef}
-          className="flex-1 overflow-auto p-4 md:p-6 bg-gray-100 dark:bg-black/20 flex justify-center items-start relative scroll-smooth"
+          className="flex-1 overflow-auto p-4 md:p-6 bg-[#f3f4f6] dark:bg-black/20 flex justify-center items-start scroll-smooth"
         >
-          <div id="factura-content" className="bg-white text-black p-4 md:p-5 w-[21.59cm] min-w-[21.59cm] shrink-0 shadow-lg rounded-xl flex flex-col relative mx-auto">
+          {/* Wrapper responsivo que reserva el espacio exacto y evita barras de desplazamiento horizontales al escalar */}
+          <div 
+            style={{ 
+              width: `${816 * scale + 40}px`, 
+              height: contentHeight > 0 ? `${contentHeight * scale + 40}px` : 'auto',
+              overflow: 'hidden',
+              padding: '20px',
+              transition: 'height 0.2s ease-out, width 0.2s ease-out'
+            }}
+          >
+            {/* Contenedor que aplica la transformación de escala (SIN position absolute para no romper el layout) */}
+            <div 
+              style={{ 
+                transform: `scale(${scale})`, 
+                transformOrigin: 'top left',
+                width: '816px'
+              }}
+            >
+              <div 
+                id="factura-content" 
+                ref={contentRef}
+                className="bg-white text-black p-4 md:p-5 shrink-0 shadow-lg md:rounded-xl flex flex-col mx-auto" 
+                style={{ width: '21.59cm', minWidth: '21.59cm' }}
+              >
             
             <div className="flex justify-between items-start mb-3">
               {/* Logo y Empresa */}
@@ -486,32 +467,32 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                   type="text" 
                   value={empresaNombre} 
                   onChange={(e) => setEmpresaNombre(e.target.value)} 
-                  className="font-bold uppercase text-md border-b border-transparent hover:border-gray-300 focus:border-black transition-colors w-full"
+                  className="font-bold uppercase text-md border-b border-transparent hover:border-[#d1d5db] focus:border-black transition-colors w-full"
                 />
                 <textarea 
                   value={empresaDireccion} 
                   onChange={(e) => setEmpresaDireccion(e.target.value)} 
-                  className="text-xs text-gray-600 border-b border-transparent hover:border-gray-300 focus:border-black transition-colors w-full resize-none leading-tight"
+                  className="text-xs text-[#4b5563] border-b border-transparent hover:border-[#d1d5db] focus:border-black transition-colors w-full resize-none leading-tight"
                   rows={3}
                   placeholder="Dirección..."
                 />
-                <div className="flex items-center text-xs text-gray-600">
+                <div className="flex items-center text-xs text-[#4b5563]">
                   <span className="font-bold mr-1">Tel:</span>
                   <input 
                     type="text" 
                     value={empresaTelefono} 
                     onChange={(e) => setEmpresaTelefono(e.target.value)} 
-                    className="border-b border-transparent hover:border-gray-300 focus:border-black transition-colors flex-1"
+                    className="border-b border-transparent hover:border-[#d1d5db] focus:border-black transition-colors flex-1"
                     placeholder="Teléfono..."
                   />
                 </div>
-                <div className="flex items-center text-xs text-gray-600">
+                <div className="flex items-center text-xs text-[#4b5563]">
                   <span className="font-bold mr-1">E-mail:</span>
                   <input 
                     type="text" 
                     value={empresaEmail} 
                     onChange={(e) => setEmpresaEmail(e.target.value)} 
-                    className="border-b border-transparent hover:border-gray-300 focus:border-black transition-colors flex-1"
+                    className="border-b border-transparent hover:border-[#d1d5db] focus:border-black transition-colors flex-1"
                     placeholder="Correo..."
                   />
                 </div>
@@ -521,7 +502,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                     type="text" 
                     value={empresaRTN} 
                     onChange={(e) => setEmpresaRTN(e.target.value)} 
-                    className="font-bold border-b border-transparent hover:border-gray-300 focus:border-black transition-colors flex-1"
+                    className="font-bold border-b border-transparent hover:border-[#d1d5db] focus:border-black transition-colors flex-1"
                     placeholder="RTN..."
                   />
                 </div>
@@ -531,7 +512,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
               <div className="w-[45%] text-right">
                 <h1 className="text-lg font-black text-[#e3b54a] mb-1 uppercase tracking-wide">Factura</h1>
                 <div className="flex items-center justify-end font-bold text-base mb-1 text-right">
-                  <div className="flex items-center border-b border-transparent hover:border-gray-300 focus-within:border-[#e3b54a] transition-colors">
+                  <div className="flex items-center border-b border-transparent hover:border-[#d1d5db] focus-within:border-[#e3b54a] transition-colors">
                     <span className="mr-1">No.</span>
                     <input 
                       type="text" 
@@ -541,23 +522,23 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                     />
                   </div>
                 </div>
-                <p className="text-[10px] text-gray-600 mb-2">CAI: <span className="font-mono">{sarConfig?.cai || 'POR DEFINIR'}</span></p>
+                <p className="text-[10px] text-[#4b5563] mb-2">CAI: <span className="font-mono">{sarConfig?.cai || 'POR DEFINIR'}</span></p>
                 
                 <div className="flex justify-end gap-2">
-                  <div className="inline-block border border-gray-300 rounded-md overflow-hidden bg-white">
-                    <div className="bg-gray-100 px-3 py-1 text-[10px] font-bold text-center border-b border-gray-300">FECHA</div>
+                  <div className="inline-block border border-[#d1d5db] rounded-md overflow-hidden bg-white">
+                    <div className="bg-[#f3f4f6] px-3 py-1 text-[10px] font-bold text-center border-b border-[#d1d5db]">FECHA</div>
                     <div className="px-2 py-1 flex items-center justify-center">
                       <input 
                         type="date"
                         value={facturaFecha}
                         onChange={(e) => setFacturaFecha(e.target.value)}
-                        className="font-bold text-xs text-center border-none bg-transparent hover:bg-gray-50 focus:ring-0 p-0 m-0 outline-none w-[100px] print:w-auto cursor-pointer"
+                        className="font-bold text-xs text-center border-none bg-transparent hover:bg-[#f9fafb] focus:ring-0 p-0 m-0 outline-none w-[100px] print:w-auto cursor-pointer"
                       />
                     </div>
                   </div>
                   
-                  <div className="inline-block border border-gray-300 rounded-md overflow-hidden">
-                    <div className="bg-gray-100 px-3 py-1 text-[10px] font-bold text-center border-b border-gray-300">CONDICIÓN DE PAGO</div>
+                  <div className="inline-block border border-[#d1d5db] rounded-md overflow-hidden">
+                    <div className="bg-[#f3f4f6] px-3 py-1 text-[10px] font-bold text-center border-b border-[#d1d5db]">CONDICIÓN DE PAGO</div>
                     <div className="px-3 py-1 text-center font-bold text-xs text-[#e3b54a]">
                       {condicionPago}
                     </div>
@@ -567,36 +548,46 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
             </div>
 
             {/* Datos del Cliente */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3">
+            <div className="bg-[#f9fafb] border border-[#e5e7eb] rounded-lg p-3 mb-3">
               <h3 className="text-[10px] font-bold text-[#e3b54a] uppercase tracking-wider mb-2">Facturar A:</h3>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="flex flex-col">
-                  <span className="text-gray-500 text-[10px] mb-0.5">Nombre del Cliente</span>
+                  <span className="text-[#6b7280] text-[10px] mb-0.5">Nombre del Cliente</span>
                   <input 
                     type="text" 
                     value={clienteNombre} 
                     onChange={(e) => setClienteNombre(e.target.value)} 
-                    className="font-bold border-b border-gray-300 focus:border-[#e3b54a] transition-colors bg-transparent min-w-0" 
+                    className="font-bold border-b border-[#d1d5db] focus:border-[#e3b54a] transition-colors bg-transparent min-w-0" 
                     placeholder="Nombre..."
                   />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-gray-500 text-[10px] mb-0.5">R.T.N.</span>
+                  <span className="text-[#6b7280] text-[10px] mb-0.5">R.T.N.</span>
                   <input 
                     type="text" 
                     value={clienteRTN} 
                     onChange={(e) => setClienteRTN(e.target.value)} 
-                    className="font-bold border-b border-gray-300 focus:border-[#e3b54a] transition-colors bg-transparent min-w-0" 
+                    className="font-bold border-b border-[#d1d5db] focus:border-[#e3b54a] transition-colors bg-transparent min-w-0" 
                     placeholder="RTN del cliente..."
                   />
                 </div>
-                <div className="flex flex-col col-span-2">
-                  <span className="text-gray-500 text-[10px] mb-0.5">Dirección</span>
+                <div className="flex flex-col">
+                  <span className="text-[#6b7280] text-[10px] mb-0.5">Razón Social</span>
+                  <input 
+                    type="text" 
+                    value={clienteRazonSocial} 
+                    onChange={(e) => setClienteRazonSocial(e.target.value)} 
+                    className="font-bold border-b border-[#d1d5db] focus:border-[#e3b54a] transition-colors bg-transparent w-full min-w-0" 
+                    placeholder="Razón Social del cliente..."
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[#6b7280] text-[10px] mb-0.5">Dirección</span>
                   <input 
                     type="text" 
                     value={clienteDireccion} 
                     onChange={(e) => setClienteDireccion(e.target.value)} 
-                    className="border-b border-gray-300 focus:border-[#e3b54a] transition-colors bg-transparent w-full min-w-0" 
+                    className="border-b border-[#d1d5db] focus:border-[#e3b54a] transition-colors bg-transparent w-full min-w-0" 
                     placeholder="Dirección del cliente..."
                   />
                 </div>
@@ -604,7 +595,7 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
             </div>
 
             {/* Tabla de Detalles */}
-            <div className="rounded-lg overflow-hidden border border-gray-200 mb-3 flex-1">
+            <div className="rounded-lg overflow-hidden border border-[#e5e7eb] mb-3">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-[#e3b54a] text-black">
@@ -615,15 +606,15 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
                     <th className="px-2 py-1.5 text-right font-bold w-24">TOTAL L.</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-[#e5e7eb]">
                   {pedido.detalles?.map((det: any, index: number) => {
                     const unitPrice = Number(det.subtotal) / Number(det.cantidad);
                     return (
                       <tr key={index} className="bg-white">
                         <td className="px-2 py-1.5 text-center align-top">{Number(det.cantidad)}</td>
                         <td className="px-2 py-1.5 align-top font-medium">{det.producto_nombre}</td>
-                        <td className="px-2 py-1.5 text-right align-top text-gray-600">{unitPrice.toFixed(2)}</td>
-                        <td className="px-2 py-1.5 text-right align-top text-gray-600">0.00</td>
+                        <td className="px-2 py-1.5 text-right align-top text-[#4b5563]">{unitPrice.toFixed(2)}</td>
+                        <td className="px-2 py-1.5 text-right align-top text-[#4b5563]">0.00</td>
                         <td className="px-2 py-1.5 text-right font-bold align-top">{Number(det.subtotal).toFixed(2)}</td>
                       </tr>
                     );
@@ -633,14 +624,14 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
             </div>
 
             {/* Footer de Factura: Totales + Información Legal agrupados */}
-            <div className="w-full mt-auto flex gap-3">
+            <div className="w-full mt-4 flex gap-3">
               {/* Bloque Izquierdo: Son + Info SAR */}
-              <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3 flex flex-col">
+              <div className="flex-1 bg-[#f9fafb] border border-[#e5e7eb] rounded-lg p-3 flex flex-col">
                 <div className="flex items-start gap-2 text-[10px] mb-2">
                   <span className="font-bold pt-1 whitespace-nowrap">Son:</span>
-                  <span className="flex-1 font-medium italic uppercase border-b border-gray-400 pb-0.5">{numeroALetras(granTotal)}</span>
+                  <span className="flex-1 font-medium italic uppercase border-b border-[#9ca3af] pb-0.5">{numeroALetras(granTotal)}</span>
                 </div>
-                <div className="pt-1 text-[9px] space-y-1 mt-3 text-gray-600">
+                <div className="pt-1 text-[9px] space-y-1 mt-3 text-[#4b5563]">
                   <p><span className="font-bold">Rango Autorizado:</span> {getRango(sarConfig?.rango_inicial || 1)} al {getRango(sarConfig?.rango_final || 1000)}</p>
                   <p><span className="font-bold">Fecha Límite de Emisión:</span> {limiteEmision}</p>
                   <p className="font-bold text-[#e3b54a] text-[10px] mt-2 uppercase tracking-wide">LA FACTURA ES BENEFICIO DE TODOS: ¡EXÍJALA!</p>
@@ -648,24 +639,25 @@ export function FacturaModal({ isOpen, onClose, pedido }: FacturaModalProps) {
               </div>
 
               {/* Bloque Derecho: Totales */}
-              <div className="w-[45%] md:w-64 bg-gray-50 rounded-lg border border-gray-200 p-2.5">
+              <div className="w-[45%] md:w-64 bg-[#f9fafb] rounded-lg border border-[#e5e7eb] p-2.5">
                 <div className="space-y-1.5 text-[11px]">
-                  <div className="flex justify-between text-gray-600"><span>Importe Exonerado</span><span>L. 0.00</span></div>
-                  <div className="flex justify-between text-gray-600"><span>Importe Exento</span><span>L. {importeExento.toFixed(2)}</span></div>
-                  <div className="flex justify-between text-gray-600"><span>Importe Gravado 15%</span><span>L. {importeGravado15.toFixed(2)}</span></div>
-                  <div className="flex justify-between text-gray-600"><span>Importe Gravado 18%</span><span>L. 0.00</span></div>
-                  <div className="flex justify-between text-gray-600"><span>15% I.S.V.</span><span>L. {isv15.toFixed(2)}</span></div>
-                  <div className="flex justify-between text-gray-600"><span>18% I.S.V.</span><span>L. 0.00</span></div>
-                  <div className="pt-2 border-t border-gray-300 flex justify-between items-center mt-1">
+                  <div className="flex justify-between text-[#4b5563]"><span>Importe Exonerado</span><span>L. 0.00</span></div>
+                  <div className="flex justify-between text-[#4b5563]"><span>Importe Exento</span><span>L. {importeExento.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-[#4b5563]"><span>Importe Gravado 15%</span><span>L. {importeGravado15.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-[#4b5563]"><span>Importe Gravado 18%</span><span>L. 0.00</span></div>
+                  <div className="flex justify-between text-[#4b5563]"><span>15% I.S.V.</span><span>L. {isv15.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-[#4b5563]"><span>18% I.S.V.</span><span>L. 0.00</span></div>
+                  <div className="pt-2 border-t border-[#d1d5db] flex justify-between items-center mt-1">
                     <span className="font-black text-xs">TOTAL A PAGAR</span>
                     <span className="font-black text-sm text-[#e3b54a]">L. {granTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
+      </div>
+    </div>
         
         {/* Indicador de scroll flotante */}
         <ScrollProgressIndicator targetRef={scrollRef} />

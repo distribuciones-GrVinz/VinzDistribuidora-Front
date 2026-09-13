@@ -202,3 +202,21 @@ export async function updateConfiguracionesEntrega(data: any) {
   if (!response.ok) throw new Error('Error al actualizar configuración de entregas');
   return response.json();
 }
+export async function updateOrderQuantities(id: string, detalles: any[], motivo: string) {
+  const response = await fetch(`${API_URL}/pedidos/${id}/update_quantities/`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ detalles, motivo }),
+  });
+  if (!response.ok) {
+    let msg = "Error al actualizar cantidades";
+    try {
+        const errorData = await response.json();
+        if (errorData && errorData[0]) msg = errorData[0];
+    } catch (e) {
+        msg = await response.text();
+    }
+    throw new Error(msg);
+  }
+  return response.json();
+}
