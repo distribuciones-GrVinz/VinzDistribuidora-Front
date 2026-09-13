@@ -179,25 +179,24 @@ export function Login() {
     <div className="min-h-screen bg-background flex flex-col justify-center items-center font-sans relative overflow-hidden">
 
       
-      {/* Background Image Container */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/login-bg.jpg')" }}
+        style={{ backgroundImage: "url('/real_menu_bg.jpg')" }}
       >
         <div className="absolute inset-0 bg-black/40 backdrop-blur-[3px]"></div>
       </div>
 
       {/* Container */}
-      <div className="z-10 w-full max-w-[1000px] px-4 sm:px-6 md:px-10 py-6 md:py-4 h-[95vh] md:h-[90vh] min-h-[700px] max-h-[1000px] md:min-h-[650px] md:max-h-[850px] relative">
+      <div className="z-10 w-full max-w-[1000px] px-4 sm:px-6 md:px-10 py-4 h-[95vh] md:h-[90vh] min-h-[780px] md:min-h-[720px] max-h-[1000px] relative flex flex-col justify-center">
         <div className={`auth-container w-full h-full shadow-2xl rounded-3xl overflow-hidden relative transition-colors duration-500 ${isAdminMode ? 'bg-black/90 backdrop-blur-md' : 'bg-surface/95 backdrop-blur-md'}`}>
           
           {/* Form Panel (White/Black) */}
-          <div className={`absolute left-0 w-full md:w-1/2 h-[80%] md:h-full z-10 transition-all duration-500 ease-in-out ${isAdminMode ? 'bg-black text-white' : 'bg-white'} 
-            ${isRightPanelActive ? 'top-0 md:top-0 md:translate-x-full' : 'top-[20%] md:top-0 md:translate-x-0'}`}>
-            <div className="p-8 md:p-12 h-full flex flex-col justify-center relative">
+          <div className={`absolute left-0 w-full md:w-1/2 h-[82%] sm:h-[80%] md:h-full z-10 transition-all duration-500 ease-in-out ${isAdminMode ? 'bg-black text-white' : 'bg-white'} 
+            ${isRightPanelActive ? 'top-0 md:top-0 md:translate-x-full' : 'top-[18%] sm:top-[20%] md:top-0 md:translate-x-0'}`}>
+            <div className="p-4 sm:p-8 md:p-12 h-full flex flex-col justify-center relative">
 
               {/* Login Form */}
-              <div className={`transition-opacity duration-400 absolute inset-0 p-6 md:p-8 flex flex-col justify-center ${isRightPanelActive ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
+              <div className={`transition-opacity duration-400 absolute inset-0 p-4 sm:p-6 md:p-8 flex flex-col justify-center ${isRightPanelActive ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
                 <div className="my-auto w-full max-w-sm mx-auto">
                   <div className="mb-4 flex justify-center cursor-pointer select-none" onClick={handleLogoClick}>
                     {isAdminMode ? (
@@ -303,16 +302,16 @@ export function Login() {
               </div>
 
               {/* Sign Up Form */}
-              <div className={`transition-opacity duration-400 absolute inset-0 p-6 md:p-8 flex flex-col justify-center ${isRightPanelActive ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+              <div className={`transition-opacity duration-400 absolute inset-0 p-4 sm:p-6 md:p-8 flex flex-col justify-center ${isRightPanelActive ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
                 <div className="my-auto w-full max-w-sm mx-auto">
-                  <div className="mb-4 flex justify-center select-none">
-                    <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="h-12 md:h-16 w-auto object-cover scale-[1.3] rounded-full mix-blend-multiply" />
+                  <div className="mb-2 md:mb-4 flex justify-center select-none">
+                    <img src="/sweet_logo.jpg" alt="Sweet & Tasty" className="h-10 md:h-16 w-auto object-cover scale-[1.3] rounded-full mix-blend-multiply" />
                   </div>
-                  <div className="mb-5 text-center">
-                    <p className="text-xs text-primary uppercase tracking-wider mb-1 font-bold">Únete a la familia</p>
-                    <h2 className="text-2xl md:text-3xl font-bold text-on-surface mb-1 font-headline-xl">Crear una cuenta</h2>
+                  <div className="mb-4 text-center">
+                    <p className="text-[10px] sm:text-xs text-primary uppercase tracking-wider mb-1 font-bold">Únete a la familia</p>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-on-surface mb-1 font-headline-xl">Crear una cuenta</h2>
                   </div>
-                <form onSubmit={handleRegister} className="space-y-3 flex-grow flex flex-col justify-center">
+                <form onSubmit={handleRegister} className="space-y-2 md:space-y-3 flex-grow flex flex-col justify-center">
                   <div>
                     <label className="block text-xs font-semibold text-on-surface-variant mb-1">Nombre completo</label>
                     <div className="relative">
@@ -397,8 +396,8 @@ export function Login() {
           </div>
 
           {/* Overlay Panel (Gold) */}
-          <div className={`absolute left-0 md:left-1/2 w-full md:w-1/2 h-[20%] md:h-full z-20 transition-all duration-500 ease-in-out bg-[#e3b54a] overflow-hidden text-black
-            ${isRightPanelActive ? 'top-[80%] md:top-0 md:-translate-x-full' : 'top-0 md:top-0 md:translate-x-0'}`}>
+          <div className={`absolute left-0 md:left-1/2 w-full md:w-1/2 h-[18%] sm:h-[20%] md:h-full z-20 transition-all duration-500 ease-in-out bg-[#e3b54a] overflow-hidden text-black
+            ${isRightPanelActive ? 'top-[82%] sm:top-[80%] md:top-0 md:-translate-x-full' : 'top-0 md:top-0 md:translate-x-0'}`}>
             
             <div className={`absolute inset-0 flex flex-col justify-center items-center text-center px-4 md:px-12 transition-all duration-600 
               ${isRightPanelActive ? '-translate-y-[20%] md:-translate-y-0 md:-translate-x-[20%] opacity-0 pointer-events-none' : 'translate-y-0 md:translate-x-0 opacity-100 pointer-events-auto'}`}>
