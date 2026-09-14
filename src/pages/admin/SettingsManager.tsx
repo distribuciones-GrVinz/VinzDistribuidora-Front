@@ -1,14 +1,28 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { useNotification } from '../../context/NotificationContext';
-import { Calendar, Moon, Sun, Monitor, FileText, Save, AlertTriangle, QrCode, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, Moon, Sun, Monitor, FileText, Save, AlertTriangle, QrCode, Download, ChevronDown, ChevronUp, Bell, Send } from 'lucide-react';
 import { getSARConfig, updateSARConfig, getConfiguracionesEntrega, updateConfiguracionesEntrega } from '../../services/adminService';
 import { QRCodeCanvas } from 'qrcode.react';
+import { pushService } from '../../services/pushService';
+
+const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:8000/api`;
+function getAuthHeaders() {
+  const token = localStorage.getItem('vinz_token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+}
 
 export function SettingsManager() {
   const { theme, toggleTheme } = useTheme();
   const { showNotification } = useNotification();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  const [pushData, setPushData] = useState({ titulo: '', mensaje: '', url_destino: '/' });
+  const [isSendingPush, setIsSendingPush] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -463,6 +477,118 @@ export function SettingsManager() {
             </form>
           )}
 
+        </section>
+
+        {/* Notificaciones Push (Administrar & Suscribirse) */}
+        <section className="bg-white dark:bg-[#0f0f0f] border border-outline-variant/50 dark:border-white/5 rounded-3xl p-6 md:p-8 shadow-lg dark:shadow-2xl transition-colors">
+          <button onClick={() => toggleSection('push')} className="w-full flex items-center justify-between outline-none">
+            <div className="flex items-center gap-3">
+              <div className="bg-surface dark:bg-[#1a1a1a] p-3 rounded-xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none">
+                <Bell className="w-6 h-6 text-tertiary dark:text-[#e3b54a]" />
+              </div>
+              <h2 className="text-xl font-headline-lg text-on-surface dark:text-white text-left">Notificaciones Push</h2>
+            </div>
+            {expandedSection === 'push' ? <ChevronUp className="w-6 h-6 text-on-surface dark:text-white/70" /> : <ChevronDown className="w-6 h-6 text-on-surface dark:text-white/70" />}
+          </button>
+
+          {expandedSection === 'push' && (
+            <div className="mt-8 space-y-6">
+              
+              {/* Suscripción personal */}
+              <div className="bg-surface dark:bg-[#1a1a1a] p-6 rounded-2xl border border-outline-variant/50 dark:border-white/5">
+                <h3 className="font-bold text-lg text-on-surface dark:text-white mb-2">Notificaciones en este Dispositivo</h3>
+                <p className="text-sm text-on-surface-variant dark:text-white/70 mb-4">
+                  Activa las notificaciones para recibir alertas importantes en este dispositivo.
+                </p>
+                <div className="flex gap-4">
+                  <button 
+                    onClick={async () => {
+                      setIsSubscribing(true);
+                      const exito = await pushService.subscribe();
+                      if (exito) showNotification('success', 'Te has suscrito exitosamente');
+                      else showNotification('error', 'No se pudo activar las notificaciones');
+                      setIsSubscribing(false);
+                    }}
+                    disabled={isSubscribing}
+                    className="bg-primary text-white dark:bg-[#e3b54a] dark:text-black px-6 py-2 rounded-xl font-bold hover:-translate-y-0.5 transition-all"
+                  >
+                    {isSubscribing ? 'Procesando...' : 'Activar Notificaciones'}
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      setIsSubscribing(true);
+                      const exito = await pushService.unsubscribe();
+                      if (exito) showNotification('success', 'Te has desuscrito');
+                      else showNotification('error', 'Error al desuscribir');
+                      setIsSubscribing(false);
+                    }}
+                    disabled={isSubscribing}
+                    className="bg-error/10 text-error px-6 py-2 rounded-xl font-bold hover:bg-error/20 transition-all"
+                  >
+                    Desactivar
+                  </button>
+                </div>
+              </div>
+
+              {/* Enviar Notificación Masiva */}
+              <div className="bg-surface dark:bg-[#1a1a1a] p-6 rounded-2xl border border-outline-variant/50 dark:border-white/5">
+                <h3 className="font-bold text-lg text-on-surface dark:text-white mb-4">Enviar Notificación Masiva</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-on-surface-variant dark:text-white/70 mb-2">Título</label>
+                    <input 
+                      type="text"
+                      value={pushData.titulo}
+                      onChange={e => setPushData({...pushData, titulo: e.target.value})}
+                      className="w-full bg-white dark:bg-[#111] border border-outline-variant/30 dark:border-white/10 rounded-xl px-4 py-3 text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-tertiary dark:focus:ring-[#e3b54a]"
+                      placeholder="Ej. ¡Nueva Promoción!"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-on-surface-variant dark:text-white/70 mb-2">Mensaje</label>
+                    <textarea 
+                      value={pushData.mensaje}
+                      onChange={e => setPushData({...pushData, mensaje: e.target.value})}
+                      className="w-full bg-white dark:bg-[#111] border border-outline-variant/30 dark:border-white/10 rounded-xl px-4 py-3 text-on-surface dark:text-white focus:outline-none focus:ring-2 focus:ring-tertiary dark:focus:ring-[#e3b54a] h-24 resize-none"
+                      placeholder="Escribe el mensaje..."
+                    />
+                  </div>
+                  <div className="flex justify-end pt-2">
+                    <button
+                      onClick={async () => {
+                        if (!pushData.titulo || !pushData.mensaje) {
+                          showNotification('error', 'Por favor llena el título y mensaje');
+                          return;
+                        }
+                        setIsSendingPush(true);
+                        try {
+                          const res = await fetch(`${API_URL}/push/campaign/`, {
+                            method: 'POST',
+                            headers: getAuthHeaders(),
+                            body: JSON.stringify(pushData)
+                          });
+                          if (!res.ok) throw new Error('Error en petición');
+                          const data = await res.json();
+                          showNotification('success', `Enviada a ${data.exitos} dispositivos.`);
+                          setPushData({ titulo: '', mensaje: '', url_destino: '/' });
+                        } catch (e) {
+                          showNotification('error', 'Error al enviar la campaña');
+                        } finally {
+                          setIsSendingPush(false);
+                        }
+                      }}
+                      disabled={isSendingPush}
+                      className="flex items-center gap-2 bg-tertiary hover:bg-tertiary-container text-white dark:bg-[#e3b54a] dark:text-black dark:hover:bg-white px-8 py-3 rounded-xl font-bold transition-all disabled:opacity-50"
+                    >
+                      <Send className="w-5 h-5" />
+                      {isSendingPush ? 'Enviando...' : 'Enviar Ahora'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
         </section>
       </div>
     </div>

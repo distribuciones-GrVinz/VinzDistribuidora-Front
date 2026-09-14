@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { User, Building2, Store, FileText, MapPin, Save, Loader2, Phone, Moon, Sun, Monitor, LogOut } from 'lucide-react';
+import { User, Building2, Store, FileText, MapPin, Save, Loader2, Phone, Moon, Sun, Monitor, LogOut, Bell } from 'lucide-react';
+import { pushService } from '../../services/pushService';
 
 interface ClienteProfile {
   id: string;
@@ -24,6 +25,7 @@ export function ClientSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -283,6 +285,55 @@ export function ClientSettings() {
             </div>
           </section>
         </form>
+
+        {/* Notificaciones Push (Suscripción personal) */}
+        <section className="bg-white dark:bg-[#0f0f0f] border border-outline-variant/50 dark:border-white/5 rounded-3xl p-6 md:p-10 shadow-lg dark:shadow-2xl transition-colors">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-surface dark:bg-[#1a1a1a] p-3 rounded-xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none">
+              <Bell className="w-6 h-6 text-tertiary dark:text-[#e3b54a]" />
+            </div>
+            <h2 className="text-2xl font-headline-lg text-on-surface dark:text-white">Notificaciones</h2>
+          </div>
+          
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 p-6 bg-surface dark:bg-[#1a1a1a] rounded-2xl border border-outline-variant/50 dark:border-white/5 shadow-sm dark:shadow-none transition-colors">
+            <div>
+              <h3 className="font-bold text-on-surface dark:text-white text-lg">Notificaciones en este Dispositivo</h3>
+              <p className="text-on-surface-variant/70 dark:text-white/40 text-sm mt-1 max-w-sm">Activa las notificaciones para recibir actualizaciones sobre el estado de tus pedidos.</p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+              <button 
+                type="button"
+                onClick={async () => {
+                  setIsSubscribing(true);
+                  const exito = await pushService.subscribe();
+                  if (exito) setMessage({ type: 'success', text: 'Notificaciones activadas exitosamente' });
+                  else setMessage({ type: 'error', text: 'No se pudo activar las notificaciones' });
+                  setIsSubscribing(false);
+                }}
+                disabled={isSubscribing}
+                className="relative flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold transition-all shadow-md bg-[#e3b54a] text-black hover:bg-[#c89f53] hover:-translate-y-1 disabled:opacity-50"
+              >
+                {isSubscribing ? 'Procesando...' : 'Activar Notificaciones'}
+              </button>
+              
+              <button 
+                type="button"
+                onClick={async () => {
+                  setIsSubscribing(true);
+                  const exito = await pushService.unsubscribe();
+                  if (exito) setMessage({ type: 'success', text: 'Notificaciones desactivadas' });
+                  else setMessage({ type: 'error', text: 'Error al desactivar notificaciones' });
+                  setIsSubscribing(false);
+                }}
+                disabled={isSubscribing}
+                className="relative flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold transition-all border border-red-500/50 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 hover:-translate-y-1 disabled:opacity-50"
+              >
+                Desactivar
+              </button>
+            </div>
+          </div>
+        </section>
 
         {/* Sección de Cerrar Sesión */}
         <section className="mt-8 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-3xl p-6 md:p-10 shadow-sm transition-colors">
