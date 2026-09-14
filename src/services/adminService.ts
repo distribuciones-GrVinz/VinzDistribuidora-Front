@@ -55,13 +55,22 @@ export async function createClienteAdmin(data: any) {
 // ==========================================
 // CATEGORIAS
 // ==========================================
+const _cache = {
+  categorias: { data: null as any, time: 0 }
+};
+
 export async function getCategorias() {
+  if (_cache.categorias.data && Date.now() - _cache.categorias.time < 30 * 60 * 1000) {
+    return _cache.categorias.data;
+  }
   const response = await fetch(`${API_URL}/categorias/`, {
     headers: getAuthHeaders(),
   });
   if (!response.ok) throw new Error('Error al obtener categorias');
   const data = await response.json();
-  return data.results || data;
+  const result = data.results || data;
+  _cache.categorias = { data: result, time: Date.now() };
+  return result;
 }
 
 // ==========================================

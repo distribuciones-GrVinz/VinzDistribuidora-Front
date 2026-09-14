@@ -11,6 +11,10 @@ export interface CreateOrderPayload {
 }
 
 export const clientService = {
+  _cache: {
+    configDespacho: { data: null as any, time: 0 }
+  },
+
   /**
    * Crea un pedido completo con sus detalles a través de la transacción atómica
    */
@@ -54,6 +58,10 @@ export const clientService = {
    * Obtiene la configuración de despachos (fechas estimadas)
    */
   async getConfiguracionDespacho(token: string) {
+    if (this._cache.configDespacho.data && Date.now() - this._cache.configDespacho.time < 30 * 60 * 1000) {
+      return this._cache.configDespacho.data;
+    }
+
     const response = await fetch(`${API_URL}/configuraciones-entrega/`, {
       headers: {
         'Authorization': `Bearer ${token}`
@@ -64,6 +72,8 @@ export const clientService = {
       throw new Error('Error al obtener configuración de entrega');
     }
 
-    return await response.json();
+    const data = await response.json();
+    this._cache.configDespacho = { data, time: Date.now() };
+    return data;
   }
 };
