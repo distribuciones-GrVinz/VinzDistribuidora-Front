@@ -605,6 +605,20 @@ export function ClientManager() {
               </div>
             </div>
 
+            <div className="pt-4 mt-6 border-t border-outline-variant/30 dark:border-white/10">
+              <button 
+                onClick={() => {
+                  let factor = parseFloat(selectedCliente.factor_precio as any) || 1.0;
+                  setConfigData({ estado: selectedCliente.estado || 'Pendiente', factor_precio: factor });
+                  setIsDetailsModalOpen(false);
+                  setIsConfigModalOpen(true);
+                }}
+                className="w-full py-3 px-4 bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black font-bold rounded-xl shadow-md hover:-translate-y-0.5 transition-transform"
+              >
+                Administrar Cliente (Aprobar/Denegar)
+              </button>
+            </div>
+
           </div>
         </div>
       )}
