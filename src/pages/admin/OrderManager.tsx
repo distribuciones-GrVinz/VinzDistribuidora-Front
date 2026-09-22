@@ -1,6 +1,6 @@
 import { Package, Clock, CheckCircle, ChefHat, Receipt, X } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
-import { getPedidos, updateEstadoPedido, updateOrderQuantities } from '../../services/adminService';
+import { getPedidos, updateEstadoPedido, updateOrderQuantities, getProductos, addDetallePedido } from '../../services/adminService';
 import { ProductionSummaryModal } from '../../components/admin/ProductionSummaryModal';
 import { FacturaModal } from '../../components/admin/FacturaModal';
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll';
@@ -21,6 +21,47 @@ export function OrderManager() {
   const [editDetails, setEditDetails] = useState<any[]>([]);
   const [editMotivo, setEditMotivo] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Agregar Producto a Pedido
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+  const [productosDisponibles, setProductosDisponibles] = useState<any[]>([]);
+  const [newProductId, setNewProductId] = useState<string>('');
+  const [newProductQuantity, setNewProductQuantity] = useState<number>(1);
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+
+  useEffect(() => {
+    if (isAddProductModalOpen && productosDisponibles.length === 0) {
+      getProductos().then(res => setProductosDisponibles(res.results || res)).catch(console.error);
+    }
+  }, [isAddProductModalOpen]);
+
+  const handleAddProduct = async () => {
+    if (!newProductId || newProductQuantity <= 0) return;
+    setIsAddingProduct(true);
+    try {
+      await addDetallePedido({
+        pedido: selectedOrder.id,
+        producto: newProductId,
+        cantidad: newProductQuantity
+      });
+      setIsAddProductModalOpen(false);
+      setNewProductId('');
+      setNewProductQuantity(1);
+      
+      // Recargar detalles del pedido
+      const res = await getPedidos();
+      const items = res.results || res;
+      setPedidos(items);
+      const updatedOrder = items.find((p: any) => p.id === selectedOrder.id);
+      if (updatedOrder) setSelectedOrder(updatedOrder);
+      
+      alert('Producto agregado exitosamente');
+    } catch (e: any) {
+      alert(e.message || 'Error al agregar producto');
+    } finally {
+      setIsAddingProduct(false);
+    }
+  };
 
   // Paginación y Filtrado
   const [currentPage, setCurrentPage] = useState(1);
@@ -472,14 +513,22 @@ export function OrderManager() {
               )}
 
               {/* Botón Activar Edición */}
-              {!isEditMode && ['Pendiente', 'Elaborado'].includes(selectedOrder.estado) && selectedOrder.detalles?.length > 0 && (
-                <div className="mt-4 flex justify-end">
+              {!isEditMode && ['Pendiente', 'Elaborado'].includes(selectedOrder.estado) && (
+                <div className="mt-4 flex justify-end gap-3 flex-wrap">
                   <button 
-                    onClick={() => setIsEditMode(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-surface-variant/30 hover:bg-surface-variant/50 dark:bg-white/5 dark:hover:bg-white/10 text-on-surface dark:text-white font-bold rounded-lg transition-colors text-sm border border-outline-variant/50 dark:border-white/10"
+                    onClick={() => setIsAddProductModalOpen(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white hover:bg-tertiary dark:bg-primary-container dark:text-white dark:hover:bg-[#e3b54a] dark:hover:text-black font-bold rounded-lg transition-colors text-sm shadow-sm"
                   >
-                    Modificar Cantidades
+                    + Agregar Producto
                   </button>
+                  {selectedOrder.detalles?.length > 0 && (
+                    <button 
+                      onClick={() => setIsEditMode(true)}
+                      className="flex items-center gap-2 px-4 py-2 bg-surface-variant/30 hover:bg-surface-variant/50 dark:bg-white/5 dark:hover:bg-white/10 text-on-surface dark:text-white font-bold rounded-lg transition-colors text-sm border border-outline-variant/50 dark:border-white/10"
+                    >
+                      Modificar Cantidades
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -523,6 +572,56 @@ export function OrderManager() {
           pedidos={pedidos}
           onOrdersUpdated={cargarPedidos}
         />
+      )}
+
+      {/* Agregar Producto Modal */}
+      {isAddProductModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-surface dark:bg-[#0f0f0f] w-full max-w-md rounded-3xl p-6 shadow-2xl border border-outline-variant/30 dark:border-white/10">
+            <h3 className="text-xl font-bold mb-4 text-on-surface dark:text-white">Agregar Producto al Pedido</h3>
+            
+            <div className="mb-4">
+              <label className="block text-xs font-bold mb-2 text-on-surface-variant dark:text-white/60 uppercase">Producto</label>
+              <select 
+                value={newProductId}
+                onChange={e => setNewProductId(e.target.value)}
+                className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-3 px-4 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]"
+              >
+                <option value="">Seleccione un producto...</option>
+                {productosDisponibles.map(p => (
+                  <option key={p.id} value={p.id}>{p.nombre} (Stock: {p.stock_disponible})</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-xs font-bold mb-2 text-on-surface-variant dark:text-white/60 uppercase">Cantidad</label>
+              <input 
+                type="number"
+                min="1"
+                value={newProductQuantity}
+                onChange={e => setNewProductQuantity(parseInt(e.target.value) || 1)}
+                className="w-full bg-white dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-xl py-3 px-4 text-sm text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setIsAddProductModalOpen(false)}
+                className="flex-1 py-3 px-4 bg-surface dark:bg-[#1a1a1a] text-on-surface dark:text-white font-bold rounded-xl border border-outline-variant/50 dark:border-white/10 hover:bg-outline-variant/30 dark:hover:bg-white/5"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleAddProduct}
+                disabled={isAddingProduct || !newProductId}
+                className="flex-1 py-3 px-4 bg-tertiary text-white dark:bg-[#e3b54a] dark:text-black font-bold rounded-xl shadow-md hover:-translate-y-0.5 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isAddingProduct ? 'Agregando...' : 'Agregar'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Factura Modal */}

@@ -229,3 +229,16 @@ export async function updateOrderQuantities(id: string, detalles: any[], motivo:
   }
   return response.json();
 }
+
+export async function addDetallePedido(data: { pedido: string | number, producto: string | number, cantidad: number }) {
+  const response = await fetch(`${API_URL}/detalles-pedido/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(errText);
+  }
+  return response.json();
+}
