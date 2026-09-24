@@ -163,11 +163,7 @@ export function OrderManager() {
         alert("Ningún producto puede tener cantidad menor a 0.");
         return;
       }
-      const original = selectedOrder.detalles.find((d: any) => d.id === det.id);
-      if (original && det.cantidad > original.cantidad) {
-        alert("No puedes aumentar la cantidad de un producto por encima de lo solicitado.");
-        return;
-      }
+
     }
 
     try {
@@ -420,7 +416,6 @@ export function OrderManager() {
                           <input 
                             type="number"
                             min="0"
-                            max={selectedOrder.detalles.find((d: any) => d.id === det.id)?.cantidad || 1}
                             value={Math.round(Number(det.cantidad))}
                             onChange={(e) => {
                               const newDetails = [...editDetails];
@@ -478,7 +473,6 @@ export function OrderManager() {
                               <input 
                                 type="number"
                                 min="0"
-                                max={selectedOrder.detalles.find((d: any) => d.id === det.id)?.cantidad || 1}
                                 value={Math.round(Number(det.cantidad))}
                                 onChange={(e) => {
                                   const newDetails = [...editDetails];
