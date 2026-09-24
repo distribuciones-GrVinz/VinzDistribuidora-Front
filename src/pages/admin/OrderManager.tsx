@@ -1,4 +1,4 @@
-import { Package, Clock, CheckCircle, ChefHat, Receipt, X } from 'lucide-react';
+import { Package, Clock, CheckCircle, ChefHat, Receipt, X, Trash2 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { getPedidos, updateEstadoPedido, updateOrderQuantities, getProductos, addDetallePedido } from '../../services/adminService';
 import { ProductionSummaryModal } from '../../components/admin/ProductionSummaryModal';
@@ -407,10 +407,11 @@ export function OrderManager() {
               {/* Mobile View */}
               <div className="md:hidden flex flex-col divide-y divide-outline-variant/30 dark:divide-white/5 bg-white dark:bg-[#1a1a1a] rounded-xl border border-outline-variant/30 dark:border-white/5 mt-2">
                 {(isEditMode ? editDetails : selectedOrder.detalles)?.map((det: any, index: number) => (
-                  <div key={det.id} className="p-3">
-                    <p className="text-sm font-semibold text-on-surface dark:text-white break-words">
+                  <div key={det.id} className={`p-3 transition-opacity ${det.cantidad === 0 ? 'opacity-40 bg-red-50 dark:bg-red-950/10' : ''}`}>
+                    <p className={`text-sm font-semibold text-on-surface dark:text-white break-words ${det.cantidad === 0 ? 'line-through text-red-500' : ''}`}>
                       {det.producto_nombre} 
                       <span className="text-[10px] text-on-surface-variant/50 ml-1">({det.producto_sku})</span>
+                      {det.cantidad === 0 && <span className="ml-2 text-[10px] text-red-600 dark:text-red-400 font-bold uppercase">Se eliminará</span>}
                     </p>
                     <div className="flex justify-between items-center mt-2">
                       {isEditMode ? (
@@ -418,21 +419,34 @@ export function OrderManager() {
                           <span className="text-xs text-on-surface-variant dark:text-white/60">Cant:</span>
                           <input 
                             type="number"
-                            min="1"
+                            min="0"
                             max={selectedOrder.detalles.find((d: any) => d.id === det.id)?.cantidad || 1}
                             value={Math.round(Number(det.cantidad))}
                             onChange={(e) => {
                               const newDetails = [...editDetails];
-                              newDetails[index].cantidad = Number(e.target.value);
+                              newDetails[index].cantidad = Math.max(0, Number(e.target.value));
                               setEditDetails(newDetails);
                             }}
                             className="w-16 bg-surface dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-md py-1 px-2 text-sm text-center text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]"
                           />
+                          <button
+                            onClick={() => {
+                              const newDetails = [...editDetails];
+                              newDetails[index].cantidad = 0;
+                              setEditDetails(newDetails);
+                            }}
+                            className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors"
+                            title="Eliminar producto"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       ) : (
                         <span className="text-xs text-on-surface-variant dark:text-white/60">Cant: <span className="font-bold">{Math.round(Number(det.cantidad))}</span></span>
                       )}
-                      <span className="text-sm font-bold text-primary dark:text-white">L {isEditMode ? (det.cantidad * (det.subtotal / (selectedOrder.detalles.find((d:any) => d.id === det.id)?.cantidad || 1))).toFixed(2) : det.subtotal}</span>
+                      <span className={`text-sm font-bold ${det.cantidad === 0 ? 'text-red-500 line-through' : 'text-primary dark:text-white'}`}>
+                        L {isEditMode ? (det.cantidad * (det.subtotal / (selectedOrder.detalles.find((d:any) => d.id === det.id)?.cantidad || 1))).toFixed(2) : det.subtotal}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -453,27 +467,45 @@ export function OrderManager() {
                   </thead>
                   <tbody>
                     {(isEditMode ? editDetails : selectedOrder.detalles)?.map((det: any, index: number) => (
-                      <tr key={det.id}>
-                        <td>{det.producto_nombre} <span className="text-[10px] text-on-surface-variant/50 ml-2">({det.producto_sku})</span></td>
+                      <tr key={det.id} className={det.cantidad === 0 ? 'opacity-40 bg-red-50 dark:bg-red-950/10' : ''}>
+                        <td className={det.cantidad === 0 ? 'line-through text-red-500' : ''}>
+                          {det.producto_nombre} <span className="text-[10px] text-on-surface-variant/50 ml-2">({det.producto_sku})</span>
+                          {det.cantidad === 0 && <span className="ml-2 text-[10px] text-red-600 dark:text-red-400 font-bold uppercase">Se eliminará</span>}
+                        </td>
                         <td className="text-center font-bold">
                           {isEditMode ? (
-                            <input 
-                              type="number"
-                              min="1"
-                              max={selectedOrder.detalles.find((d: any) => d.id === det.id)?.cantidad || 1}
-                              value={Math.round(Number(det.cantidad))}
-                              onChange={(e) => {
-                                const newDetails = [...editDetails];
-                                newDetails[index].cantidad = Number(e.target.value);
-                                setEditDetails(newDetails);
-                              }}
-                              className="w-20 mx-auto bg-surface dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-lg py-1.5 px-2 text-sm text-center text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]"
-                            />
+                            <div className="flex items-center justify-center gap-2">
+                              <input 
+                                type="number"
+                                min="0"
+                                max={selectedOrder.detalles.find((d: any) => d.id === det.id)?.cantidad || 1}
+                                value={Math.round(Number(det.cantidad))}
+                                onChange={(e) => {
+                                  const newDetails = [...editDetails];
+                                  newDetails[index].cantidad = Math.max(0, Number(e.target.value));
+                                  setEditDetails(newDetails);
+                                }}
+                                className="w-20 bg-surface dark:bg-black border border-outline-variant/50 dark:border-white/10 rounded-lg py-1.5 px-2 text-sm text-center text-on-surface dark:text-white focus:outline-none focus:border-tertiary dark:focus:border-[#e3b54a]"
+                              />
+                              <button
+                                onClick={() => {
+                                  const newDetails = [...editDetails];
+                                  newDetails[index].cantidad = 0;
+                                  setEditDetails(newDetails);
+                                }}
+                                className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors"
+                                title="Eliminar producto"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           ) : (
                             Math.round(Number(det.cantidad))
                           )}
                         </td>
-                        <td className="text-right">L {isEditMode ? (det.cantidad * (det.subtotal / (selectedOrder.detalles.find((d:any) => d.id === det.id)?.cantidad || 1))).toFixed(2) : det.subtotal}</td>
+                        <td className={`text-right ${det.cantidad === 0 ? 'text-red-500 line-through' : ''}`}>
+                          L {isEditMode ? (det.cantidad * (det.subtotal / (selectedOrder.detalles.find((d:any) => d.id === det.id)?.cantidad || 1))).toFixed(2) : det.subtotal}
+                        </td>
                       </tr>
                     ))}
                     {(!selectedOrder.detalles || selectedOrder.detalles.length === 0) && (
