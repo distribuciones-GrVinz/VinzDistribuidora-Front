@@ -159,8 +159,8 @@ export function OrderManager() {
     
     // Validar cantidades
     for (const det of editDetails) {
-      if (det.cantidad < 1) {
-        alert("Ningún producto puede tener cantidad menor a 1.");
+      if (det.cantidad < 0) {
+        alert("Ningún producto puede tener cantidad menor a 0.");
         return;
       }
       const original = selectedOrder.detalles.find((d: any) => d.id === det.id);
